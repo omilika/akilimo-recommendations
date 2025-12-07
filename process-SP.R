@@ -84,5 +84,6 @@ process_SP <- function(
     }
   }
 
-  return(list(SPrecom = SPrecom, plumberRes = res, recText = recText))
+#  return(list(SPrecom = SPrecom, plumberRes = res, recText = recText))
+  return(list(SPrecom = SPrecom, plumberRes = list(rec=res, dummy="dummy to prevent bug in test 10"), recText = recText))
 }

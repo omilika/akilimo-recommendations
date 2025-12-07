@@ -1501,153 +1501,113 @@ getFRrecomMarkdown <- function(lat, lon, PD, HD, maxInv, fertilizers, GPS_fertRe
 
 #' RF model works only if the factr levels are exactly identical to the data used to develop the model,
 #' it reads the NOT data and add the FCY to train a random forest model and then use the model to predict INS for the user GPS
+
+# this new version was taken from the file on the test server that was not in github. 
+# I assume that Siya made these changes. The values are somewhat different than with the original 
+# function, but not by much. And this does introduce a number of good improvements.
 Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
-  require(randomForest)
-  require(caret)
+  #require(randomForest)
+  #require(caret)
+  
+  # Helper function to compute CON class
+  class_from_con <- function(x) {
+    cut(x, breaks = c(-Inf, 7.5, 15, 22.5, 30, Inf),  right = FALSE,
+        labels = c("class1", "class2", "class3", "class4", "class5"))
+  }
+  
+  # Columns to convert
+#  numeric_cols <- c(
+#    "Clay_5", "Clay_15", "Clay_30", "silt_5", "silt_15", "silt_30", "BD_5",
+#    "BD_15", "BD_30", "CEC_5", "CEC_15", "CEC_30", "TotalN", "Mn", "B", "Ca", 
+#    "Fe", "Cu", "Al", "Mg", "Na", "CON"
+#  )
+  
+  # Prepare GIS data
+  GIS_soilINS_modData2 <- read.csv("NOT_GIS_CON_2020.csv") |>
+    mutate( #across(all_of(numeric_cols), as.numeric),
+           ncluster = as.factor(ncluster),
+           CONclass = class_from_con(CON),
+           country = as.factor(country))
 
-
-  GIS_soilINS_modData2 <- read.csv("NOT_GIS_CON_2020.csv")
-  GIS_soilINS_modData2$Clay_5 <- as.numeric(GIS_soilINS_modData2$Clay_5)
-  GIS_soilINS_modData2$Clay_15 <- as.numeric(GIS_soilINS_modData2$Clay_15)
-  GIS_soilINS_modData2$Clay_30 <- as.numeric(GIS_soilINS_modData2$Clay_30)
-  GIS_soilINS_modData2$silt_5 <- as.numeric(GIS_soilINS_modData2$silt_5)
-  GIS_soilINS_modData2$silt_15 <- as.numeric(GIS_soilINS_modData2$silt_15)
-  GIS_soilINS_modData2$silt_30 <- as.numeric(GIS_soilINS_modData2$silt_30)
-  GIS_soilINS_modData2$BD_5 <- as.numeric(GIS_soilINS_modData2$BD_5)
-  GIS_soilINS_modData2$BD_15 <- as.numeric(GIS_soilINS_modData2$BD_15)
-  GIS_soilINS_modData2$BD_30 <- as.numeric(GIS_soilINS_modData2$BD_30)
-  GIS_soilINS_modData2$CEC_5 <- as.numeric(GIS_soilINS_modData2$CEC_5)
-  GIS_soilINS_modData2$CEC_15 <- as.numeric(GIS_soilINS_modData2$CEC_15)
-  GIS_soilINS_modData2$CEC_30 <- as.numeric(GIS_soilINS_modData2$CEC_30)
-  GIS_soilINS_modData2$TotalN <- as.numeric(GIS_soilINS_modData2$TotalN)
-  GIS_soilINS_modData2$Mn <- as.numeric(GIS_soilINS_modData2$Mn)
-  GIS_soilINS_modData2$B <- as.numeric(GIS_soilINS_modData2$B)
-  GIS_soilINS_modData2$Ca <- as.numeric(GIS_soilINS_modData2$Ca)
-  GIS_soilINS_modData2$Fe <- as.numeric(GIS_soilINS_modData2$Fe)
-  GIS_soilINS_modData2$Cu <- as.numeric(GIS_soilINS_modData2$Cu)
-  GIS_soilINS_modData2$Al <- as.numeric(GIS_soilINS_modData2$Al)
-  GIS_soilINS_modData2$Mg <- as.numeric(GIS_soilINS_modData2$Mg)
-  GIS_soilINS_modData2$Na <- as.numeric(GIS_soilINS_modData2$Na)
-  GIS_soilINS_modData2$ncluster <- as.factor(GIS_soilINS_modData2$ncluster)
-  GIS_soilINS_modData2$CON <- as.numeric(GIS_soilINS_modData2$CON)
-
-
-  GIS_soilINS_modData2$CONclass <- ifelse(GIS_soilINS_modData2$CON < 7.5, "class1",
-                                          ifelse(GIS_soilINS_modData2$CON >= 7.5 & GIS_soilINS_modData2$CON < 15, "class2",
-                                                 ifelse(GIS_soilINS_modData2$CON >= 15 & GIS_soilINS_modData2$CON < 22.5, "class3",
-                                                        ifelse(GIS_soilINS_modData2$CON >= 22.5 & GIS_soilINS_modData2$CON < 30, "class4", "class5"))))
-
-  GIS_soilINS_modData2$CONclass <- as.factor(GIS_soilINS_modData2$CONclass)
-
-  ISRIC_SoilData <- readRDS("ISRIC_SoilData_2020.RDS")
-  ISRIC_SoilData <- unique(ISRIC_SoilData[ISRIC_SoilData$lat == lat & ISRIC_SoilData$long == lon,])
-
-  ISRIC_SoilData$Clay_5 <- as.numeric(ISRIC_SoilData$Clay_5)
-  ISRIC_SoilData$Clay_15 <- as.numeric(ISRIC_SoilData$Clay_15)
-  ISRIC_SoilData$Clay_30 <- as.numeric(ISRIC_SoilData$Clay_30)
-  ISRIC_SoilData$silt_5 <- as.numeric(ISRIC_SoilData$silt_5)
-  ISRIC_SoilData$silt_15 <- as.numeric(ISRIC_SoilData$silt_15)
-  ISRIC_SoilData$silt_30 <- as.numeric(ISRIC_SoilData$silt_30)
-  ISRIC_SoilData$BD_5 <- as.numeric(ISRIC_SoilData$BD_5)
-  ISRIC_SoilData$BD_15 <- as.numeric(ISRIC_SoilData$BD_15)
-  ISRIC_SoilData$BD_30 <- as.numeric(ISRIC_SoilData$BD_30)
-  ISRIC_SoilData$CEC_5 <- as.numeric(ISRIC_SoilData$CEC_5)
-  ISRIC_SoilData$CEC_15 <- as.numeric(ISRIC_SoilData$CEC_15)
-  ISRIC_SoilData$CEC_30 <- as.numeric(ISRIC_SoilData$CEC_30)
-  ISRIC_SoilData$TotalN <- as.numeric(ISRIC_SoilData$TotalN)
-  ISRIC_SoilData$Mn <- as.numeric(ISRIC_SoilData$Mn)
-  ISRIC_SoilData$B <- as.numeric(ISRIC_SoilData$B)
-  ISRIC_SoilData$Ca <- as.numeric(ISRIC_SoilData$Ca)
-  ISRIC_SoilData$Fe <- as.numeric(ISRIC_SoilData$Fe)
-  ISRIC_SoilData$Cu <- as.numeric(ISRIC_SoilData$Cu)
-  ISRIC_SoilData$Al <- as.numeric(ISRIC_SoilData$Al)
-  ISRIC_SoilData$Mg <- as.numeric(ISRIC_SoilData$Mg)
-  ISRIC_SoilData$Na <- as.numeric(ISRIC_SoilData$Na)
-  ISRIC_SoilData$ncluster <- as.factor(ISRIC_SoilData$ncluster)
-  ISRIC_SoilData$CON <- FCY ## this value is only to standardaize the for the RF, other wise it gets teh value form the user input
-
-
-  ISRIC_SoilData$CONclass <- ifelse(ISRIC_SoilData$CON < 7.5, "class1",
-                                    ifelse(ISRIC_SoilData$CON >= 7.5 & ISRIC_SoilData$CON < 15, "class2",
-                                           ifelse(ISRIC_SoilData$CON >= 15 & ISRIC_SoilData$CON < 22.5, "class3",
-                                                  ifelse(ISRIC_SoilData$CON >= 22.5 & ISRIC_SoilData$CON < 30, "class4", "class5"))))
-
-
-  ISRIC_SoilData$CONclass <- as.factor(ISRIC_SoilData$CONclass)
-
+  # Prepare point data
+  ISRIC_SoilData <- readRDS("ISRIC_SoilData_2020.RDS") |>
+    dplyr::filter(lat == .env$lat & long == lon) |>
+    dplyr::distinct() |>
+    dplyr::mutate(#across(all_of(numeric_cols), as.numeric),
+           ncluster = as.factor(ncluster),
+           CON = FCY,  # Use a default value
+           CONclass = class_from_con(CON))
+  
+  
   ISRIC_SoilData$soilN <- 0
   ISRIC_SoilData$soilP <- 0
   ISRIC_SoilData$soilK <- 0
-
-  trianData <- droplevels(ISRIC_SoilData[, colnames(GIS_soilINS_modData2)])
-
-  trianData$use <- "Valid"
+  
+#  trainData <- droplevels(ISRIC_SoilData[, colnames(GIS_soilINS_modData2)])
+  trainData <- ISRIC_SoilData[, colnames(GIS_soilINS_modData2)]
+  
+  trainData$use <- "Valid"
   GIS_soilINS_modData2$use <- "train"
-  factoring <- rbind(GIS_soilINS_modData2, trianData)
-
+  factoring <- rbind(GIS_soilINS_modData2, trainData)
+  
   GIS_soilINS_modData2 <- factoring[factoring$use == "train",]
   GIS_soilINS_modData2 <- subset(GIS_soilINS_modData2, select = -c(use))
-
+  
   ISRIC_SoilData <- factoring[factoring$use == "Valid",]
   ISRIC_SoilData <- subset(ISRIC_SoilData, select = -c(use))
-
+  
   ### Data partioning
   set.seed(444)
   ind <- sample(2, nrow(GIS_soilINS_modData2), replace = TRUE, prob = c(0.7, 0.3)) ## where conrtol yield is used as a covariate
   trainData <- GIS_soilINS_modData2[ind == 1,]
   testData <- GIS_soilINS_modData2[ind == 2,]
-
+  
   Ndata_Train <- subset(trainData, select = -c(soilP, soilK))
   Pdata_Train <- subset(trainData, select = -c(soilN, soilK))
   Kdata_Train <- subset(trainData, select = -c(soilN, soilP))
-
+  
   Ndata_Valid <- subset(testData, select = -c(soilP, soilK))
   Pdata_Valid <- subset(testData, select = -c(soilN, soilK))
   Kdata_Valid <- subset(testData, select = -c(soilN, soilP))
-
+  
   ## Coustome control parameter
   #custom <- trainControl(method="repeatedcv", number=10, repeats=5, verboseIter=TRUE)
-  require(caret)
+#  require(caret)
   custom <- trainControl(method = "oob", number = 10)
   ##########################################################################
   ## Random Forest soilN:
   ##########################################################################
   set.seed(444)
   RF_N1 <- randomForest(log(soilN) ~ ., subset(Ndata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
-
+  
   ##########################################################################
   ## Random Forest "soilP"
   ##########################################################################
   set.seed(773)
   RF_P1 <- randomForest(log(soilP) ~ ., subset(Pdata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
-
+  
   ##########################################################################
   ## Random Forest soilK" R sq. 0.60 if control is used, 0.29 otherwise
   ##########################################################################
   set.seed(773)
   RF_K1 <- randomForest(log(soilK) ~ ., subset(Kdata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
-
+  
   ##########################################################################
   ## use the random forest model and get the soil NPK estimates for the whole area
   ##########################################################################
-  ISRIC_SoilData$soilN <- 0
-  ISRIC_SoilData$soilP <- 0
-  ISRIC_SoilData$soilK <- 0
-
-
-  ISRIC_SoilData <- ISRIC_SoilData[, c("soilN", "soilP", "soilK", "exchK", "olsenP", "Clay_5", "Clay_15", "Clay_30", "percentSOM_5", "percentSOM_15", "percentSOM_30",
-                                       "pH_5", "pH_15", "pH_30", "silt_5", "silt_15", "silt_30", "BD_5", "BD_15", "BD_30", "CEC_5", "CEC_15", "CEC_30", "percentSOC_5",
-                                       "percentSOC_15", "percentSOC_30", "FC_5", "FC_15", "FC_30", "wp_5", "wp_15", "wp_30", "sws_5", "sws_15", "sws_30",
-                                       "TotalN", "Mn", "B", "Ca", "Fe", "Cu", "Al", "Mg", "Na", "ncluster", "country", "CON", "CONclass")]
-  ISRIC_SoilData <- subset(ISRIC_SoilData, select = -(CON))
-
-  ISRIC_SoilData$country <- as.factor(ISRIC_SoilData$country)
-  ISRIC_SoilData$ncluster <- as.factor(ISRIC_SoilData$ncluster)
-
+#  ISRIC_SoilData <- ISRIC_SoilData[, c("soilN", "soilP", "soilK", "exchK", "olsenP", "Clay_5", "Clay_15", "Clay_30", "percentSOM_5", "percentSOM_15", "percentSOM_30",
+#                                       "pH_5", "pH_15", "pH_30", "silt_5", "silt_15", "silt_30", "BD_5", "BD_15", "BD_30", "CEC_5", "CEC_15", "CEC_30", "percentSOC_5",
+#                                       "percentSOC_15", "percentSOC_30", "FC_5", "FC_15", "FC_30", "wp_5", "wp_15", "wp_30", "sws_5", "sws_15", "sws_30",
+#                                       "TotalN", "Mn", "B", "Ca", "Fe", "Cu", "Al", "Mg", "Na", "ncluster", "country", "CON", "CONclass")]
+#  ISRIC_SoilData <- subset(ISRIC_SoilData, select = -(CON))
+  
+  # ISRIC_SoilData$country <- as.factor(ISRIC_SoilData$country)
+  # ISRIC_SoilData$ncluster <- as.factor(ISRIC_SoilData$ncluster)
+  
   ISRIC_SoilData$soilN <- exp(predict(RF_N1, ISRIC_SoilData))
   ISRIC_SoilData$soilP <- exp(predict(RF_P1, ISRIC_SoilData))
   ISRIC_SoilData$soilK <- exp(predict(RF_K1, ISRIC_SoilData))
-
+  
   ISRIC_SoilData$rec_N <- 0.5
   ISRIC_SoilData$rec_P <- 0.15
   ISRIC_SoilData$rec_K <- 0.5
@@ -1660,8 +1620,9 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
   ISRIC_SoilData$Zone <- country
   ISRIC_SoilData <- ISRIC_SoilData[, c("location", "lat", "long", "soilN", "soilP", "soilK", "Zone", "rec_N", "rec_P", "rec_K", "rel_N", "rel_P", "rel_K")]
   return(ISRIC_SoilData)
-
+  
 }
+
 
 
 #' The soil NPK as obtained from random forest model

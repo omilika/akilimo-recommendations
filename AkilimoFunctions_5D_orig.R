@@ -956,7 +956,7 @@ NRabove18Cost <- function(ds, riskAtt) {
     fertRecom$N <- fertRecom$P <- fertRecom$K <- fertRecom$TC <- fertRecom$NR <- 0
     fertRecom$TargetY <- fertRecom$CurrentY
     
-    onlyFert <- subset(ds, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR, harvestDate))
+    onlyFert <- subset(ds, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
     row.names(onlyFert) <- NULL
     for (j in 1:ncol(onlyFert)) {
       onlyFert[, j] <- 0
@@ -1536,8 +1536,14 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
 
   GIS_soilINS_modData2$CONclass <- as.factor(GIS_soilINS_modData2$CONclass)
 
-  ISRIC_SoilData <- readRDS("ISRIC_SoilData_2020.RDS")
-  ISRIC_SoilData <- unique(ISRIC_SoilData[ISRIC_SoilData$lat == lat & ISRIC_SoilData$long == lon,])
+  ISRIC <- readRDS("ISRIC_SoilData_2020.RDS")
+
+## RH this is a hack, but useful to make things run
+  lon <- ISRIC$lon[which.min(abs(ISRIC$lon - lon))]
+  lat <- ISRIC$lat[which.min(abs(ISRIC$lat - lat))]
+
+  ISRIC_SoilData <- unique(ISRIC[ISRIC$lat == lat & ISRIC$long == lon,])
+  ISRIC_SoilData$country <- as.factor(ISRIC_SoilData$country)
 
   ISRIC_SoilData$Clay_5 <- as.numeric(ISRIC_SoilData$Clay_5)
   ISRIC_SoilData$Clay_15 <- as.numeric(ISRIC_SoilData$Clay_15)
@@ -1638,8 +1644,8 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
                                        "TotalN", "Mn", "B", "Ca", "Fe", "Cu", "Al", "Mg", "Na", "ncluster", "country", "CON", "CONclass")]
   ISRIC_SoilData <- subset(ISRIC_SoilData, select = -(CON))
 
-  ISRIC_SoilData$country <- as.factor(ISRIC_SoilData$country)
-  ISRIC_SoilData$ncluster <- as.factor(ISRIC_SoilData$ncluster)
+#  ISRIC_SoilData$country <- as.factor(ISRIC_SoilData$country)
+#  ISRIC_SoilData$ncluster <- as.factor(ISRIC_SoilData$ncluster)
 
   ISRIC_SoilData$soilN <- exp(predict(RF_N1, ISRIC_SoilData))
   ISRIC_SoilData$soilP <- exp(predict(RF_P1, ISRIC_SoilData))

@@ -1,5 +1,4 @@
 #* Compute recommendations based on input parameters
-#* @plumber
 #* Accepts a JSON payload with user and agronomic data,
 #* and returns a JSON response with recommendation results.
 #*
