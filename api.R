@@ -42,6 +42,7 @@ source("process-FR.R")
 source("process-IC.R")
 source("process-PP.R")
 source("process-SP.R")
+source(file.path(srcdir, "sms_email.R"))
 
 root <- Plumber$new()
 

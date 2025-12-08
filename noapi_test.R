@@ -29,6 +29,7 @@ source(file.path(srcdir, "process-FR.R"))
 source(file.path(srcdir, "process-IC.R"))
 source(file.path(srcdir, "process-PP.R"))
 source(file.path(srcdir, "process-SP.R"))
+source(file.path(srcdir, "sms_email.R"))
 
 
 test <- function(i) {

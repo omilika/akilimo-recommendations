@@ -648,7 +648,9 @@ getRecommendation <- function(country = c("NG", "TZ", "RW", "GH", "BU"),
     	}
 
 
-  if(email == TRUE)                     {sendEmailReport(userEmail=userEmail, FR=FR, IC=IC, PP=PP, SP=SP, country=country, FRrecom=FRrecom, ICrecom=ICrecom, PPrecom=PPrecom, SPrecom=SPrecom)}
+  if (isTRUE(email)) {
+	sendEmailReport(userEmail=userEmail, FR=FR, IC=IC, PP=PP, SP=SP, country=country, FRrecom=FRrecom, ICrecom=ICrecom, PPrecom=PPrecom, SPrecom=SPrecom)
+  }
 
 
   return(recText)
