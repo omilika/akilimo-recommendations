@@ -21,15 +21,8 @@ library(randomForest)
 library(caret)
 
 
-#source(file.path(srcdir, "AkilimoFunctions_5D_orig.R"))
-source(file.path(srcdir, "api-wrapper.R"))
-source(file.path(srcdir, "AkilimoFunctions_5D.R"))
-source(file.path(srcdir, "AkilimoMain.R"))
-source(file.path(srcdir, "process-FR.R"))
-source(file.path(srcdir, "process-IC.R"))
-source(file.path(srcdir, "process-PP.R"))
-source(file.path(srcdir, "process-SP.R"))
-source(file.path(srcdir, "sms_email.R"))
+ff <- grep("api", list.files(srcdir), invert=TRUE, value=TRUE)
+for (f in ff) source(file.path(srcdir, f))
 
 
 test <- function(i) {

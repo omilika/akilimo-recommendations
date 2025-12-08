@@ -35,14 +35,8 @@ if(os != "windows"){
 
 pandoc <- Sys.getenv("RSTUDIO_PANDOC")
 
-
-source("AkilimoFunctions_5D.R")
-source("AkilimoMain.R")
-source("process-FR.R")
-source("process-IC.R")
-source("process-PP.R")
-source("process-SP.R")
-source(file.path(srcdir, "sms_email.R"))
+ff <- grep("api", list.files(srcdir), invert=TRUE, value=TRUE)
+for (f in ff) source(file.path(srcdir, f))
 
 root <- Plumber$new()
 
