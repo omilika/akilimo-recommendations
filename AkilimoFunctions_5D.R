@@ -951,10 +951,10 @@ NRabove18Cost <- function(ds, riskAtt) {
                    "0.2")
 
   # Check if the net revenue is below the threshold
-  print("andling this one again")
-  print(paste("Data type of ds$TC:", class(ds$TC), ds$TC))
-  print(paste("Data type of dNRmin:", class(dNRmin), dNRmin))
-  print("after debuging")
+  #print("handling this one again")
+  #print(paste("ds$TC:", class(ds$TC), ", ", ds$TC))
+  #print(paste("dNRmin:", class(dNRmin), ", ", dNRmin))
+  #print("after debuging")
   # Remove any non-numeric characters before conversion
   dNRmin <- gsub("[^0-9.-]", "", dNRmin)
   dNRmin <- as.numeric(dNRmin)

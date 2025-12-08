@@ -1,11 +1,11 @@
 #!/usr/bin/Rscript --vanilla
 
 #require(methods)
-library(raster)
-library(dismo)
+#library(raster)
+#library(dismo)
 library(randomForest)
 library(caret)
-library(rgdal)
+#library(rgdal)
 library(parallel)
 library(foreach)
 library(limSolve)
@@ -20,8 +20,9 @@ library(lubridate)
 library(plumber)
 library(grid)
 library(mailR)
-library(rJava)
+#library(rJava)
 #library(renv)
+library(dplyr)
 
 #renv::init()
 
@@ -34,21 +35,22 @@ if(os != "windows"){
 
 pandoc <- Sys.getenv("RSTUDIO_PANDOC")
 
-source("AkilimoFunctions_5D.R")
 
+source("AkilimoFunctions_5D.R")
+source("AkilimoMain.R")
 source("process-FR.R")
 source("process-IC.R")
 source("process-PP.R")
 source("process-SP.R")
 
-root <- plumber$new()
+root <- Plumber$new()
 
 #health endpoint
 #healthWrapper <- plumber$new("api-health.R")
 #root$mount("/api/", healthWrapper)
 
 ##Production endpoints
-mainWrapper <- plumber$new("api-wrapper.R")
+mainWrapper <- Plumber$new("api-wrapper.R")
 
 
 # mainWrapper <- plumber$new("new-api.R")

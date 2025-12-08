@@ -1,15 +1,15 @@
 #!/usr/bin/Rscript --vanilla
 
-#this <- system('hostname', TRUE)
-#if (this == "LAPTOP-IVSPBGCA") {
-#	akpath <- "C:/github/omilika/akilimo-recommendations"
-#} else {
-#
-#}
-#srcdir <- akpath
-#datadir <- akpath
+this <- system('hostname', TRUE)
+if (this == "LAPTOP-IVSPBGCA") {
+	akpath <- "C:/github/omilika/akilimo-recommendations"
+} else {
 
-srcdir <- "."
+}
+srcdir <- akpath
+datadir <- akpath
+
+#srcdir <- "."
 
 
 library(limSolve)
@@ -23,6 +23,7 @@ library(webshot)
 
 #source(file.path(srcdir, "AkilimoFunctions_5D_orig.R"))
 source(file.path(srcdir, "AkilimoFunctions_5D.R"))
+source(file.path(srcdir, "AkilimoMain.R"))
 source(file.path(srcdir, "process-FR.R"))
 source(file.path(srcdir, "process-IC.R"))
 source(file.path(srcdir, "process-PP.R"))
