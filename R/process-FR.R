@@ -15,7 +15,7 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
     FCY = FCY, riskAtt = riskAtt
   )
 
-  cat("Finished processing")
+  cat("Finished processing\n")
 
   if (all(plumberRes$FR == no_recommendation_msg)) {
     if (country %in% no_fr_recommendation_countries) {

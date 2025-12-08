@@ -409,7 +409,12 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
                            newFert2name = NA, newFert2N_cont = NA, newFert2P2O5 = NA, newFert2K2O = NA, newFert2CostperBag = NA, newFert2BagWt = NA,
                            newFert3name = NA, newFert3N_cont = NA, newFert3P2O5 = NA, newFert3K2O = NA, newFert3CostperBag = NA, newFert3BagWt = NA,
                            newFert4name = NA, newFert4N_cont = NA, newFert4P2O5 = NA, newFert4K2O = NA, newFert4CostperBag = NA, newFert4BagWt = NA,
-                           newFert5name = NA, newFert5N_cont = NA, newFert5P2O5 = NA, newFert5K2O = NA, newFert5CostperBag = NA, newFert5BagWt = NA, country) {
+                           newFert5name = NA, newFert5N_cont = NA, newFert5P2O5 = NA, newFert5K2O = NA, newFert5CostperBag = NA, newFert5BagWt = NA, country, ...) {
+	dots <- list(...)
+	if (length(dots) > 0) {
+		print(paste("arguments ignored by fertilizerFunc:", paste(names(dots), collapse=", ")))
+	}
+
   Default_prices <- read.csv("Default_prices.csv")
   if (country == "NG") {
     if (ureaCostperBag == 0) { ureaCostperBag <- Default_prices[Default_prices$Country == "NG" & Default_prices$Item == "urea",]$Price } else { ureaCostperBag <- as.numeric(ureaCostperBag) }

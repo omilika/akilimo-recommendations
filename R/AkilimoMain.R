@@ -10,188 +10,158 @@ process_json_value <- function(field_name, body, default_value = "NA") {
 }
 
 get_fertilizers <- function(body, country) {
-    # UREA
-    ureaavailable <- process_json_value("ureaavailable", body)
-    ureaCostperBag <- process_json_value("ureaCostperBag", body)
-    ureaBagWt <- process_json_value("ureaBagWt", body, default_value = 50)
+	fert <- list(
+		country = country,
+		# UREA
+		ureaavailable = process_json_value("ureaavailable", body),
+		ureaCostperBag = process_json_value("ureaCostperBag", body),
+		ureaBagWt = process_json_value("ureaBagWt", body, default_value = 50),
 
-    # MOP
-    MOPavailable <- process_json_value("MOPavailable", body)
-    MOPCostperBag <- process_json_value("MOPCostperBag", body)
-    MOPBagWt <- process_json_value("MOPBagWt", body, default_value = 50)
+		# MOP
+		MOPavailable = process_json_value("MOPavailable", body),
+		MOPCostperBag = process_json_value("MOPCostperBag", body),
+		MOPBagWt = process_json_value("MOPBagWt", body, default_value = 50),
 
-    # DAP
-    DAPavailable <- process_json_value("DAPavailable", body)
-    DAPCostperBag <- process_json_value("DAPCostperBag", body)
-    DAPBagWt <- process_json_value("DAPBagWt", body, default_value = 50)
+		# DAP
+		DAPavailable = process_json_value("DAPavailable", body),
+		DAPCostperBag = process_json_value("DAPCostperBag", body),
+		DAPBagWt = process_json_value("DAPBagWt", body, default_value = 50),
 
-    # NPK 20-10-10
-    NPK201010available <- process_json_value("NPK201010available", body)
-    NPK201010CostperBag <- process_json_value("NPK201010CostperBag", body)
-    NPK201010BagWt <- process_json_value("NPK201010BagWt", body, default_value = 50)
+		# NPK 20-10-10
+		NPK201010available = process_json_value("NPK201010available", body),
+		NPK201010CostperBag = process_json_value("NPK201010CostperBag", body),
+		NPK201010BagWt = process_json_value("NPK201010BagWt", body, default_value = 50),
 
-    # NPK 20-12-16
-    NPK201216available <- process_json_value("NPK201216available", body)
-    NPK201216CostperBag <- process_json_value("NPK201216CostperBag", body)
-    NPK201216BagWt <- process_json_value("NPK201216BagWt", body, default_value = 50)
+		# NPK 20-12-16
+		NPK201216available = process_json_value("NPK201216available", body),
+		NPK201216CostperBag = process_json_value("NPK201216CostperBag", body),
+		NPK201216BagWt = process_json_value("NPK201216BagWt", body, default_value = 50),
 
-    # NPK 15-15-15
-    NPK151515available <- process_json_value("NPK151515available", body)
-    NPK151515CostperBag <- process_json_value("NPK151515CostperBag", body)
-    NPK151515BagWt <- process_json_value("NPK151515BagWt", body, default_value = 50)
+		# NPK 15-15-15
+		NPK151515available = process_json_value("NPK151515available", body),
+		NPK151515CostperBag = process_json_value("NPK151515CostperBag", body),
+		NPK151515BagWt = process_json_value("NPK151515BagWt", body, default_value = 50),
 
-    # TSP
-    TSPavailable <- process_json_value("TSPavailable", body)
-    TSPCostperBag <- process_json_value("TSPCostperBag", body)
-    TSPBagWt <- process_json_value("TSPBagWt", body, default_value = 50)
+		# TSP
+		TSPavailable = process_json_value("TSPavailable", body),
+		TSPCostperBag = process_json_value("TSPCostperBag", body),
+		TSPBagWt = process_json_value("TSPBagWt", body, default_value = 50),
 
-    # NPK 17-17-17
-    NPK171717available <- process_json_value("NPK171717available", body)
-    NPK171717CostperBag <- process_json_value("NPK171717CostperBag", body)
-    NPK171717BagWt <- process_json_value("NPK171717BagWt", body, default_value = 50)
+		# NPK 17-17-17
+		NPK171717available = process_json_value("NPK171717available", body),
+		NPK171717CostperBag = process_json_value("NPK171717CostperBag", body),
+		NPK171717BagWt = process_json_value("NPK171717BagWt", body, default_value = 50),
 
-    # Nafaka
-    Nafakaavailable <- process_json_value("Nafakaavailable", body)
-    NafakaCostperBag <- process_json_value("NafakaCostperBag", body)
-    NafakaBagWt <- process_json_value("NafakaBagWt", body, default_value = 50)
+		# Nafaka
+		Nafakaavailable = process_json_value("Nafakaavailable", body),
+		NafakaCostperBag = process_json_value("NafakaCostperBag", body),
+		NafakaBagWt = process_json_value("NafakaBagWt", body, default_value = 50),
 
-    # CAN
-    CANavailable <- process_json_value("CANavailable", body)
-    CANCostperBag <- process_json_value("CANCostperBag", body)
-    CANBagWt <- process_json_value("CANBagWt", body, default_value = 50)
+		# CAN
+		CANavailable = process_json_value("CANavailable", body),
+		CANCostperBag = process_json_value("CANCostperBag", body),
+		CANBagWt = process_json_value("CANBagWt", body, default_value = 50),
 
-    # SSP
-    SSPavailable <- process_json_value("SSPavailable", body)
-    SSPCostperBag <- process_json_value("SSPCostperBag", body)
-    SSPBagWt <- process_json_value("SSPBagWt", body, default_value = 50)
+		# SSP
+		SSPavailable = process_json_value("SSPavailable", body),
+		SSPCostperBag = process_json_value("SSPCostperBag", body),
+		SSPBagWt = process_json_value("SSPBagWt", body, default_value = 50),
 
-    # NPK 11-22-21
-    NPK112221available <- process_json_value("NPK112221available", body)
-    NPK112221CostperBag <- process_json_value("NPK112221CostperBag", body)
-    NPK112221BagWt <- process_json_value("NPK112221BagWt", body, default_value = 50)
+		# NPK 11-22-21
+		NPK112221available = process_json_value("NPK112221available", body),
+		NPK112221CostperBag = process_json_value("NPK112221CostperBag", body),
+		NPK112221BagWt = process_json_value("NPK112221BagWt", body, default_value = 50),
 
-    # NPK 25-10-10
-    NPK251010available <- process_json_value("NPK251010available", body)
-    NPK251010CostperBag <- process_json_value("NPK251010CostperBag", body)
-    NPK251010BagWt <- process_json_value("NPK251010BagWt", body, default_value = 50)
+		# NPK 25-10-10
+		NPK251010available = process_json_value("NPK251010available", body),
+		NPK251010CostperBag = process_json_value("NPK251010CostperBag", body),
+		NPK251010BagWt = process_json_value("NPK251010BagWt", body, default_value = 50),
 
-    # NPK 20-12-16
-    NPK201216available <- process_json_value("NPK201216available", body)
-    NPK201216CostperBag <- process_json_value("NPK201216CostperBag", body)
-    NPK201216BagWt <- process_json_value("NPK201216BagWt", body, default_value = 50)
+		# NPK 15-20-20
+		NPK152020available = process_json_value("NPK152020available", body),
+		NPK152020CostperBag = process_json_value("NPK152020CostperBag", body),
+		NPK152020BagWt = process_json_value("NPK152020BagWt", body, default_value = 50),
 
-    # NPK 15-20-20
-    NPK152020available <- process_json_value("NPK152020available", body)
-    NPK152020CostperBag <- process_json_value("NPK152020CostperBag", body)
-    NPK152020BagWt <- process_json_value("NPK152020BagWt", body, default_value = 50)
+		# NPK 23-10-5
+		NPK23105available = process_json_value("NPK23105available", body),
+		NPK23105CostperBag = process_json_value("NPK23105CostperBag", body),
+		NPK23105BagWt = process_json_value("NPK23105BagWt", body, default_value = 50),
 
-    # NPK 23-10-5
-    NPK23105available <- process_json_value("NPK23105available", body)
-    NPK23105CostperBag <- process_json_value("NPK23105CostperBag", body)
-    NPK23105BagWt <- process_json_value("NPK23105BagWt", body, default_value = 50)
+		# NPK 12-30-17
+		NPK123017available = process_json_value("NPK123017available", body),
+		NPK123017CostperBag = process_json_value("NPK123017CostperBag", body),
+		NPK123017BagWt = process_json_value("NPK123017BagWt", body, default_value = 50),
 
-    # NPK 12-30-17
-    NPK123017available <- process_json_value("NPK123017available", body)
-    NPK123017CostperBag <- process_json_value("NPK123017CostperBag", body)
-    NPK123017BagWt <- process_json_value("NPK123017BagWt", body, default_value = 50)
+		# FOMI IMBURA
+		FOMIIMBURAavailable = process_json_value("FOMIIMBURAavailable", body),
+		FOMIIMBURACostperBag = process_json_value("FOMIIMBURACostperBag", body),
+		FOMIIMBURABagWt = process_json_value("FOMIIMBURABagWt", body, default_value = 50),
 
-    # FOMI IMBURA
-    FOMIIMBURAavailable <- process_json_value("FOMIIMBURAavailable", body)
-    FOMIIMBURACostperBag <- process_json_value("FOMIIMBURACostperBag", body)
-    FOMIIMBURABagWt <- process_json_value("FOMIIMBURABagWt", body, default_value = 50)
+		# FOMI BAGARA
+		FOMIBAGARAavailable = process_json_value("FOMIBAGARAavailable", body),
+		FOMIBAGARACostperBag = process_json_value("FOMIBAGARACostperBag", body),
+		FOMIBAGARABagWt = process_json_value("FOMIBAGARABagWt", body, default_value = 50),
 
-    # FOMI BAGARA
-    FOMIBAGARAavailable <- process_json_value("FOMIBAGARAavailable", body)
-    FOMIBAGARACostperBag <- process_json_value("FOMIBAGARACostperBag", body)
-    FOMIBAGARABagWt <- process_json_value("FOMIBAGARABagWt", body, default_value = 50)
+		# FOMI TOTAHAZA
+		FOMITOTAHAZAavailable = process_json_value("FOMITOTAHAZAavailable", body),
+		FOMITOTAHAZACostperBag = process_json_value("FOMITOTAHAZACostperBag", body),
+		FOMITOTAHAZABagWt = process_json_value("FOMITOTAHAZABagWt", body, default_value = 50),
 
-    # FOMI TOTAHAZA
-    FOMITOTAHAZAavailable <- process_json_value("FOMITOTAHAZAavailable", body)
-    FOMITOTAHAZACostperBag <- process_json_value("FOMITOTAHAZACostperBag", body)
-    FOMITOTAHAZABagWt <- process_json_value("FOMITOTAHAZABagWt", body, default_value = 50)
+		# newFert1
+		newFert1name = process_json_value("newFert1name", body),
+		newFert1N_cont = process_json_value("newFert1N_cont", body),
+		newFert1P2O5 = process_json_value("newFert1P2O5", body),
+		newFert1K2O = process_json_value("newFert1K2O", body),
+		#newFertCostperBag = process_json_value("newFertCostperBag", body),
+		newFertCost1perBag = process_json_value("newFertCost1perBag", body),
+		newFert1BagWt = process_json_value("newFert1BagWt", body, default_value = 50),
 
-    # newFert1
-    newFert1name <- process_json_value("newFert1name", body)
-    newFert1N_cont <- process_json_value("newFert1N_cont", body)
-    newFert1P2O5 <- process_json_value("newFert1P2O5", body)
-    newFert1K2O <- process_json_value("newFert1K2O", body)
-    newFertCostperBag <- process_json_value("newFertCostperBag", body)
-    newFert1BagWt <- process_json_value("newFert1BagWt", body, default_value = 50)
+		# newFert2
+		newFert2name = process_json_value("newFert2name", body),
+		newFert2N_cont = process_json_value("newFert2N_cont", body),
+		newFert2P2O5 = process_json_value("newFert2P2O5", body),
+		newFert2K2O = process_json_value("newFert2K2O", body),
+		newFert2CostperBag = process_json_value("newFert2CostperBag", body),
+		newFert2BagWt = process_json_value("newFert2BagWt", body, default_value = 50),
 
-    # newFert2
-    newFert2name <- process_json_value("newFert2name", body)
-    newFert2N_cont <- process_json_value("newFert2N_cont", body)
-    newFert2P2O5 <- process_json_value("newFert2P2O5", body)
-    newFert2K2O <- process_json_value("newFert2K2O", body)
-    newFert2CostperBag <- process_json_value("newFert2CostperBag", body)
-    newFert2BagWt <- process_json_value("newFert2BagWt", body, default_value = 50)
+		# newFert3
+		newFert3name = process_json_value("newFert3name", body),
+		newFert3N_cont = process_json_value("newFert3N_cont", body),
+		newFert3P2O5 = process_json_value("newFert3P2O5", body),
+		newFert3K2O = process_json_value("newFert3K2O", body),
+		newFert3CostperBag = process_json_value("newFert3CostperBag", body),
+		newFert3BagWt = process_json_value("newFert3BagWt", body, default_value = 50),
 
-    # newFert3
-    newFert3name <- process_json_value("newFert3name", body)
-    newFert3N_cont <- process_json_value("newFert3N_cont", body)
-    newFert3P2O5 <- process_json_value("newFert3P2O5", body)
-    newFert3K2O <- process_json_value("newFert3K2O", body)
-    newFert3CostperBag <- process_json_value("newFert3CostperBag", body)
-    newFert3BagWt <- process_json_value("newFert3BagWt", body, default_value = 50)
+		# newFert4
+		newFert4name = process_json_value("newFert4name", body),
+		newFert4N_cont = process_json_value("newFert4N_cont", body),
+		newFert4P2O5 = process_json_value("newFert4P2O5", body),
+		newFert4K2O = process_json_value("newFert4K2O", body),
+		newFert4CostperBag = process_json_value("newFert4CostperBag", body),
+		newFert4BagWt = process_json_value("newFert4BagWt", body, default_value = 50),
 
-    # newFert4
-    newFert4name <- process_json_value("newFert4name", body)
-    newFert4N_cont <- process_json_value("newFert4N_cont", body)
-    newFert4P2O5 <- process_json_value("newFert4P2O5", body)
-    newFert4K2O <- process_json_value("newFert4K2O", body)
-    newFert4CostperBag <- process_json_value("newFert4CostperBag", body)
-    newFert4BagWt <- process_json_value("newFert4BagWt", body, default_value = 50)
+		# newFert5
+		newFert5name = process_json_value("newFert5name", body),
+		newFert5N_cont = process_json_value("newFert5N_cont", body),
+		newFert5P2O5 = process_json_value("newFert5P2O5", body),
+		newFert5K2O = process_json_value("newFert5K2O", body),
+		newFert5CostperBag = process_json_value("newFert5CostperBag", body),
+		newFert5BagWt = process_json_value("newFert5BagWt", body, default_value = 50)
+	)
 
-    # newFert5
-    newFert5name <- process_json_value("newFert5name", body)
-    newFert5N_cont <- process_json_value("newFert5N_cont", body)
-    newFert5P2O5 <- process_json_value("newFert5P2O5", body)
-    newFert5K2O <- process_json_value("newFert5K2O", body)
-    newFert5CostperBag <- process_json_value("newFert5CostperBag", body)
-    newFert5BagWt <- process_json_value("newFert5BagWt", body, default_value = 50)
-
-
-	fertilizerFunc(ureaavailable = ureaavailable, ureaCostperBag = ureaCostperBag, ureaBagWt = ureaBagWt,
-                                  MOPavailable = MOPavailable, MOPCostperBag = MOPCostperBag, MOPBagWt = MOPBagWt,
-                                  DAPavailable = DAPavailable, DAPCostperBag = DAPCostperBag, DAPBagWt = DAPBagWt,
-                                  NPK201010available = NPK201010available, NPK201010CostperBag = NPK201010CostperBag, NPK201010BagWt = NPK201010BagWt,
-                                  NPK151515available = NPK151515available, NPK151515CostperBag = NPK151515CostperBag, NPK151515BagWt = NPK151515BagWt,
-                                  TSPavailable = TSPavailable, TSPCostperBag = TSPCostperBag, TSPBagWt = TSPBagWt,
-                                  NPK171717available = NPK171717available, NPK171717CostperBag = NPK171717CostperBag, NPK171717BagWt = NPK171717BagWt,
-                                  NPK201216available = NPK201216available, NPK201216CostperBag = NPK201216CostperBag, NPK201216BagWt = NPK201216BagWt,
-                                  CANavailable = CANavailable, CANCostperBag = CANCostperBag, CANBagWt = CANBagWt,
-                                  SSPavailable = SSPavailable, SSPCostperBag = SSPCostperBag, SSPBagWt = SSPBagWt,
-                                  NPK112221available = NPK112221available, NPK112221CostperBag = NPK112221CostperBag, NPK112221BagWt = NPK112221BagWt,
-                                  NPK251010available = NPK251010available, NPK251010CostperBag = NPK251010CostperBag, NPK251010BagWt = NPK251010BagWt,
-                                  NPK152020available = NPK152020available, NPK152020CostperBag = NPK152020CostperBag, NPK152020BagWt = NPK152020BagWt,
-                                  NPK23105available = NPK23105available, NPK23105CostperBag = NPK23105CostperBag, NPK23105BagWt = NPK23105BagWt,
-                                  NPK123017available = NPK123017available, NPK123017CostperBag = NPK123017CostperBag, NPK123017BagWt = NPK123017BagWt,
-
-                                  FOMIIMBURAavailable = FOMIIMBURAavailable, FOMIIMBURACostperBag = FOMIIMBURACostperBag, FOMIIMBURABagWt = FOMIIMBURABagWt,
-                                  FOMIBAGARAavailable = FOMIBAGARAavailable, FOMIBAGARACostperBag = FOMIBAGARACostperBag, FOMIBAGARABagWt = FOMIBAGARABagWt,
-                                  FOMITOTAHAZAavailable = FOMITOTAHAZAavailable, FOMITOTAHAZACostperBag = FOMITOTAHAZACostperBag, FOMITOTAHAZABagWt = FOMITOTAHAZABagWt,
-
-                                  newFert1name = newFert1name, newFert1N_cont = newFert1N_cont, newFert1P2O5 = newFert1P2O5,
-                                  newFert1K2O = newFert1K2O, newFert1CostperBag = newFert1CostperBag, newFert1BagWt = newFert1BagWt,
-                                  newFert2name = newFert2name, newFert2N_cont = newFert2N_cont, newFert2P2O5 = newFert2P2O5,
-                                  newFert2K2O = newFert2K2O, newFert2CostperBag = newFert2CostperBag, newFert2BagWt = newFert2BagWt,
-                                  newFert3name = newFert3name, newFert3N_cont = newFert3N_cont, newFert3P2O5 = newFert3P2O5,
-                                  newFert3K2O = newFert3K2O, newFert3CostperBag = newFert3CostperBag, newFert3BagWt = newFert3BagWt,
-                                  newFert4name = newFert4name, newFert4N_cont = newFert4N_cont, newFert4P2O5 = newFert4P2O5,
-                                  newFert4K2O = newFert4K2O, newFert4CostperBag = newFert4CostperBag, newFert4BagWt = newFert4BagWt,
-                                  newFert5name = newFert5name, newFert5N_cont = newFert5N_cont, newFert5P2O5 = newFert5P2O5,
-                                  newFert5K2O = newFert5K2O, newFert5CostperBag = newFert5CostperBag, newFert5BagWt = newFert5BagWt, country = country)
-
-
+	do.call(fertilizerFunc, fert)
 }
 
 run_akilimo <- function(json) {
 
     # Parse JSON body
     body <- tryCatch(jsonlite::fromJSON(json), error = function(e) NULL)
+    # extract parameters from the JSON payload
 
-    # Now extract parameters from the JSON payload
     country <- process_json_value("country", body)
+
+	get_fertilizers(body, country)
+
     lat <- process_json_value("lat", body)
     lon <- process_json_value("lon", body)
     area <- process_json_value("area", body)

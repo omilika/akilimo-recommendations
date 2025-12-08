@@ -5,7 +5,9 @@ if (this == "LAPTOP-IVSPBGCA") {
 	akpath <- "C:/github/omilika/akilimo-recommendations"
 } else {
 	akpath <- "."
+
 }
+setwd(akpath)
 srcdir <- file.path(akpath, "R")
 testdir <- file.path(akpath, "tests")
 
@@ -17,14 +19,13 @@ library(randomForest)
 library(caret)
 
 
-ff <- grep("api", list.files(srcdir), invert=TRUE, value=TRUE)
-for (f in ff) source(file.path(srcdir, f))
+for (f in grep("api", list.files(srcdir), invert=TRUE, value=TRUE)) source(file.path(srcdir, f))
 
 
 test <- function(i) {
 	cat(i, "\n")
 	js <- readLines(paste0(testdir, gsub("xxx", i, "/input/in_xxx.json")))
-	process_json(js)
+	run_akilimo(js)
 	cat("--- + ---\n")
 }
 

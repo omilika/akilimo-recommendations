@@ -6,7 +6,7 @@ if (this == "LAPTOP-IVSPBGCA") {
 	
 }
 
-cmd <- 'curl -X POST http://localhost:8000/compute -H "Content-Type: application/json" --data "@./tests/input/in_xxx.json"'
+cmd <- 'curl -X POST http://localhost:8000/compute --data "@./tests/input/in_xxx.json"'
 
 jout <- lapply(1:27, \(i) {
 	print(system.time(out <- system(gsub("xxx", i, cmd), intern=TRUE)[4]))
