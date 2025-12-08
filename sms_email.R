@@ -1,43 +1,46 @@
+
 #SHORT DEF:   Function to send SMS report.
 #RETURNS:     Nothing. SMS report are sent.
 #             TODO: build in checks to log if SMS report was successfully sent.
 #DESCRIPTION: Function using Plivo service to send SMS texts to phonenumber specified.
-#             Note: Plivo credentials are hardcoded! Do not share!!!
 #             TODO: use scan function to read credentials from csv input file.
-#INPUT:       text: Vector of body text to be sent by SMS. Elements should not exceed 1600 character limit!
-#             src: source phone number, starting with country code, default 254727876796
+#INPUT:       SMStext: Vector of body text to be sent by SMS. Elements should not exceed 1600 character limit!
+#             src: source phone number, starting with country code, e.g, 254727876796
 #             dst: destination phone number, starting with country code, e.g., 234789123456
 
 
-sendSMSReport <- function(SMStext, src = "254727876796", dst, userField) {
-  if (is.list(res)) {
+# POST returns
+#  Could not verify your access level for that URL.
+# perhaps need a new subscription
+
+sendSMSReport <- function(SMStext, dst) {
     #plivio account details
 	pw <- readRDS("passwords.rds")
-    AUTH_ID = plivio$AUTH_ID
-    AUTH_TOKEN = plivio$AUTH_TOKEN
-    url = paste0("https://api.plivo.com/v1/Account/", AUTH_ID, "/Message/")
+    AUTH_ID <- pw$plivo$AUTH_ID
+    AUTH_TOKEN <- pw$plivo$AUTH_TOKEN
+	src <- pw$plivo$source
+    url <- paste0("https://api.plivo.com/v1/Account/", AUTH_ID, "/Message/")
 
-    for (i in SMStext) {
-      if (nchar(i) <= 1600) {
-        POST(url,
-             authenticate(AUTH_ID, AUTH_TOKEN),
-             body = list(src = src, dst = dst, text = i))
-      }else {
-        print("Text message exceeds 1600 character limit. Message not sent")
-      }
-    }
-  }
+    for (txt in SMStext) {
+		if (nchar(txt) > 1600) {
+			txt <- paste0(substr(1, 1588, txt), " [truncated]")
+			print("text message truncated to the 1600 character limit")
+		}
+        httr::POST(url, httr::authenticate(AUTH_ID, AUTH_TOKEN), body=list(src=src, dst=dst, text=txt))
+	}
 }
 
 
-
 #' function to send mail
+
+# this is not working. Perhaps replace mailR with sendmailR or blastula package to avoid Java dependency
+
 sendEmailReport <- function(userEmail, FR, IC, PP, SP, FRrecom, ICrecom, country, PPrecom, SPrecom, userPhoneNr) {
 
   print(paste("Running email generation FR=", FR, "IC=", IC, "PP=", PP, "SP=", SP, "FRrecom=", FRrecom, "ICrecom=", ICrecom))
 
-	listofPDFs <- NULL
-	add_pdf <- function(f) {listofPDFs <<- c(listofPDFs, f); f}
+	PDFs <- NULL
+	add_pdf <- function(f) {PDFs <<- c(PDFs, f); f}
 
 	if (FR & (!IC) & FRrecom) {
 	# is that the correct file exists? Or is that the file that should be generated?
@@ -85,16 +88,15 @@ sendEmailReport <- function(userEmail, FR, IC, PP, SP, FRrecom, ICrecom, country
 
 	if (!is.null(listofPDFs)) {
 		pwd <- readRDS("passwords.rds")
-		send.mail(from = pwd$email$user.name,
+		mailR::send.mail(from = pwd$email$user.name,
               to = as.character(userEmail),
               subject = "AKILIMO recommendation",
               body = "Please find attached the recommendation. \n Best Regards, \n AKILIMO",
               authenticate = TRUE,
-              attach.files = dput(as.character(listofPDFs)),
+              attach.files = PDFs,
               smtp = list(host.name = pwd$email$host.name, port = 587,
                           user.name = pwd$email$user.name, passwd = pwd$email$password, tls = TRUE))
-		try(file.remove(listofPDFs))
+		try(file.remove(PDFs))
 	}
 
 }
-
