@@ -329,3 +329,67 @@ process_IC_TZ <- function(
 
   return(list(ICrecom = ICrecom, plumberRes = res, recText = recText))
 }
+
+
+
+#' @param ds is output of getCISrecommendations
+#' @param country
+#'
+#' @return the advice as text to print in app
+getCISrecText <- function(ds) {
+
+  if (!ds[["rec"]]$rec_IC) {
+
+    # recIC <- "Intercropping is not recommended. Growing a cassava monocrop will give you a higher profit.\n"
+    # recF  <- "If you consider investing in fertilizer, please use our Fertilizer Recommendations Tool to obtain fertilizer advice for a cassava monocrop."
+
+    recIC <- "Kilimo mchanganyiko haipendekezwi. Kupanda muhogo peke yake utakupatia faida ya juu.\n"
+    recF <- "Kama ungependa kuwekeza katika mbolea, tafadhali tumia chombo chetu cha mapandekezo ya mbolea ili kupata ushauri wa kupanda muhogo bila mseto."
+
+
+  }else {
+
+    recIC <- "Tunapendekeza kuchanganya muhogo na viazi vitamu (kilimo mseto). Hii itakupatia faida ya juu na mapato ya haraka kutoka kwenye viazi vitamu."
+    #recIC <- "This will generate a higher profit overall, and also give you access to early income from sweet potato.\n"
+
+    if (!ds[["rec"]]$rec_F) {
+
+      #recF <- paste0("Fertilizer use is not recommended because ", ds[["rec"]]$reason_F, ".\n")
+      recF <- paste0("Haishauriwi kutumia  mbolea kwa sababu ", ds[["rec"]]$reason_F, ".\n")
+
+    }else {
+
+      dTC <- formatC(signif(ds[["rec"]]$dTC, digits = 3), format = "f", big.mark = ",", digits = 0)
+      dNR <- formatC(signif(ds[["rec"]]$dNR, digits = 3), format = "f", big.mark = ",", digits = 0)
+      #currency <- ifelse(country == "NG", "NGN", "TZS")
+      currency <- "TZS"
+
+      #recF <- paste0("We recommend applying\n",
+      # paste0(round(ds[["fertilizer_rates"]]$rate), " kg of ", ds[["fertilizer_rates"]]$type, collapse="\n"),
+      # "\nfor the area of your field.\n",
+      # "This will cost ", currency, " ", dTC, ". ",
+      # "We expect a net value increase of ", currency, " ", dNR, " for the area of your field.")
+
+
+      recF <- paste0("Tunapendekeza utumie\n",
+                     paste0("kilo ", round(ds[["fertilizer_rates"]]$rate), " ya ", ds[["fertilizer_rates"]]$type, collapse = "\n"), " ",
+                     "\nkatika eneo la shamba lako.\n",
+                     "Hii itagharimu shilingi ", currency, " ", dTC, ". ",
+                     "Tunatarajia jumla ya ongezeko la thamani kwa ", currency, " ", dNR, " katika eneo la shamba lako.")
+    }
+
+  }
+
+  rec <- paste0(recIC, recF)
+
+  #TODO: This only provides the minimal information to return to the user. We may consider adding following information:
+  #1. Make sure they grow the right sweet potato variety (Mayai), and the right cassava variety (Kizimbani).
+  #2. We purposefully did not include recommendations on the exact yield increases as the data is rather weak to justify this. Can be added later when more data is available.
+  #3. Some explanation included on why fertilizer is not recommended, or why intercropping is not recommended - need to evaluate if this is not too cryptic.
+  #4. Possible issues with the input data - especially if user provides unrealistic prices for sweet potato/cassava produce / fertilizers.
+  rec <- gsub("  ", " ", rec)
+  return(rec)
+
+}
+
+s
