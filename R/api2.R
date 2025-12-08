@@ -17,8 +17,7 @@ library(randomForest)
 library(caret)
 library(webshot)
 
-ff <- grep("api", list.files(srcdir), invert=TRUE, value=TRUE)
-for (f in ff) source(file.path(srcdir, f))
+for (f in grep("api", list.files(srcdir, full=TRUE), invert=TRUE, value=TRUE)) source(f)
 
 library(plumber)
 pr <- pr(file.path(akpath, "api-wrapper.R"))
