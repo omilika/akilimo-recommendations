@@ -1,4 +1,3 @@
-#!/usr/bin/Rscript --vanilla
 
 this <- system('hostname', TRUE)
 if (this == "LAPTOP-IVSPBGCA") {
@@ -23,10 +22,9 @@ for (f in grep("api", list.files(srcdir), invert=TRUE, value=TRUE)) source(file.
 
 
 test <- function(i) {
-	cat(i, "\n")
+	cat("---+ ", i, " +---\n"); flush.console()
 	js <- readLines(paste0(testdir, gsub("xxx", i, "/input/in_xxx.json")))
 	run_akilimo(js)
-	cat("--- + ---\n")
 }
 
 out <- lapply(1:27, test)
@@ -41,7 +39,7 @@ for (i in 1:27) {
 	if ((length(x$recommendations) > 0) & (length(y$recommendations) > 0)) {
 		b <- tinytest::expect_equivalent(x$recommendations, y$recommendations, tolerance=0.0001)
 		if (!b) print(b)
-	}
+	} 
 	cat(i, " ------\n")
 }
 

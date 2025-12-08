@@ -1,5 +1,198 @@
 # process_IC.R
 
+
+#SHORT DEF:   Function to obtain recommendations on cassava-maize intercropping.
+#RETURNS:     list of 2 dataframes: (i) cost benefit analysis for most profitable system, and (ii) fertilizer rates to apply.
+#DESCRIPTION: Function to obtain recommendations on cassava-maize intercropping.
+#             Returns (i) a 1-row dataframe cost-benefit parameters (extra yield, cost and net revenue, and whether to apply
+#             fertilizer and to plant maize at high density, and why (not)) , and (ii) a data.frame with types of fertilizer and rates to apply (zeros included).
+#INPUT:       See Cassava Crop Manager function for details
+getICrecommendations <- function(areaHa = 1,
+                                 CMP = 1:5,
+                                 cobUP,
+                                 fertilizers,
+                                 riskAtt = c(0, 1, 2)) {
+
+  if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
+
+  #calculating expected yield increase from fertilizer
+  maizeY <- data.frame(CMP = 1:5,
+                       dY = c(0, 6500, 4000, 2500, 0))
+
+  dMY <- maizeY[maizeY$CMP == CMP,]$dY
+  dMP <- dMY * areaHa #extra maize production for the area of the field
+
+  #extra gross revenue from fertilizer
+  dGR <- dMP * cobUP
+
+  if (dGR == 0) {
+    reason_F <- ifelse(CMP == 1, "of low soil fertility", "of high soil fertility")
+    dTC <- 0
+    FRATE <- 0
+  } else {
+    #calculating fertilizer requirement
+    E <- t(data.matrix(fertilizers[, 2:4]))
+    F <- c(91, 21, 37.5) #ideally 2 bags of urea + 6 bags of NPK15:15:15
+    G <- diag(nrow(fertilizers))
+    H <- rep(0, nrow(fertilizers))
+    Cost <- fertilizers$price
+
+    #calculating fertilizer recommendation and total cost of fertilizer
+    FRATE <- linp(E, F, G, H, Cost)$X
+    FRATE[FRATE < 25] <- 0 #dropping all rates less than 25 kg/ha
+    FRATE <- FRATE * areaHa #adjusting to field area
+
+    #calculating total cost
+    dTC <- c(FRATE %*% fertilizers$price)
+
+    #evaluating if a solution was found
+    if (dTC == 0) {
+      dGR <- 0
+      dMP <- 0
+      reason_F <- "appropriate fertilizer is not available"
+    }else {
+      reason_F <- "appropriate fertilizer is available"
+    }
+  }
+
+  #net revenue increase from fertilizer
+  dNR <- dGR - dTC
+
+  #minimal required net revenue increase from fertilizer needed (taking into account risk attitude of user)
+  dNRmin <- dTC * ifelse(riskAtt == 0, 1.8, ifelse(riskAtt == 1, 1, 0.2))
+
+  #check profitability of fertilizer use
+  if (dNR > dNRmin) {
+    rec_F <- TRUE
+    reason_F <- "fertilizer use is sufficiently profitable"
+  }else {
+    dMP <- 0
+    dTC <- 0
+    dGR <- 0
+    dNR <- 0
+    FRATE <- 0
+    rec_F <- FALSE
+    reason_F <- "fertilizer use is not sufficiently profitable"
+  }
+
+  #recommendation on high density maize planting
+  rec_D <- ifelse(rec_F == TRUE | CMP == 5, TRUE, FALSE)
+  reason_D <- ifelse(rec_F == TRUE, "fertilizer use is recommended", ifelse(CMP == 5, "of high soil fertility", NA))
+
+
+  #output
+  if (!is.na(reason_D)) {
+    rec <- data.frame(dMP = dMP, #extra maize production expected (in nr of cobs)
+                      dNR = dNR, #net revenue increase from fertilizer use (in local currency)
+                      dTC = dTC, #extra cost for fertilizer use (in local currency)
+                      rec_F = rec_F, #TRUE or FALSE indicating if fertilizer application is recommended
+                      rec_D = rec_D, #TRUE or FALSE indicating if high density maize planting is recommended
+                      reason_F = reason_F, #reason why fertilizer application is not recommended
+                      reason_D = reason_D)  #reason why high maize density is recommended
+
+
+  }else {
+    rec <- data.frame(dMP = dMP, #extra maize production expected (in nr of cobs)
+                      dNR = dNR, #net revenue increase from fertilizer use (in local currency)
+                      dTC = dTC, #extra cost for fertilizer use (in local currency)
+                      rec_F = rec_F, #TRUE or FALSE indicating if fertilizer application is recommended
+                      rec_D = rec_D, #TRUE or FALSE indicating if high density maize planting is recommended
+                      reason_F = reason_F) #reason why fertilizer application is not recommended
+
+
+  }
+
+  fertilizer_rates <- data.frame(type = fertilizers$type, rate = FRATE) #fertilizer rates to apply
+  fertilizer_rates <- fertilizer_rates[fertilizer_rates$rate > 0,]
+
+  if (CMP == 1) {
+    rec$reason_F <- "Your soil is very poor. You need to improve soil fertility before considering investing in fertilizer. You should apply compost or manure, or fallow for at least 2 years. Plant maize at low density (20,000 plants per hectare) and saw the seeds at 50 cm within rows."
+  }else if (CMP == 5) {
+    rec$reason_F <- "Your soil is very fertile. It is likely that your maize yield will not improve much after fertilizer application. Plant maize at high density (40,000 plants per hectare) and sow the seeds at 25 cm within rows."
+  }
+
+
+  return(list(rec = rec,
+              fertilizer_rates = fertilizer_rates))
+
+}
+
+
+
+
+#' @param ds is output of getICrecommendations
+#' @param maizePD mmaize product
+getICrecText <- function(ds, maizePD) {
+
+
+  if (!ds[["rec"]]$rec_F) {
+
+    #trans
+
+    recF <- paste0("Fertilizer use is not recommended because ", ds[["rec"]]$reason_F)
+
+  }else {
+
+    dTC <- formatC(signif(ds[["rec"]]$dTC, digits = 3), format = "f", big.mark = ",", digits = 0)
+    dNR <- formatC(signif(ds[["rec"]]$dNR, digits = 3), format = "f", big.mark = ",", digits = 0)
+    dMP <- signif(ds[["rec"]]$dMP, digits = 2)
+    currency <- "NGN"
+    ds[["fertilizer_rates"]]$rate <- round(ds[["fertilizer_rates"]]$rate, digits = 0)
+
+    if (maizePD == "grain") {
+      #1 kg of grain ~ 7.64 cobs
+      dMP <- round(dMP / 7.64, digits = 0)
+
+      #trans
+      recF <- paste0("We recommend applying\n",
+                     paste0(ds[["fertilizer_rates"]]$rate, " kg of ", ds[["fertilizer_rates"]]$type, collapse = "\n"), " ",
+                     "\nfor the area of your field.\n",
+                     "This will cost ", currency, " ", dTC, ". ",
+                     "We expect an extra production of ", dMP, " kg of maize for the area of your field, ",
+                     "and a net value increase of ", currency, " ", dNR, ".\n")
+
+    }else {
+
+      #trans
+      recF <- paste0("We recommend applying\n",
+                     paste0(ds[["fertilizer_rates"]]$rate, " kg of ", ds[["fertilizer_rates"]]$type, collapse = "\n"), " ",
+                     "\nfor the area of your field.\n",
+                     "This will cost ", currency, " ", dTC, ". ",
+                     "We expect an extra production of ", dMP, " cobs for the area of your field, ",
+                     "and a net value increase of ", currency, " ", dNR, ".\n")
+    }
+  }
+
+  if (!is.null(ds[["rec"]]$reason_D)) {
+
+    #trans
+    recD <- ifelse(ds[["rec"]]$rec_D, "Plant your maize intercrop at high density: 1 m between rows and 25 cm within row (40,000 plants per hectare).",
+                   paste0("Plant your maize intercrop at low density: 1 m between rows and 50 cm within row (20,000 plants per hectare) because ", ds[["rec"]]$reason_D, "."))
+  }else {
+
+    #trans
+    recD <- ifelse(ds[["rec"]]$rec_D, "Plant your maize intercrop at high density: 1 m between rows and 25 cm within row (40,000 plants per hectare).",
+                   paste0("Plant your maize intercrop at low density: 1 m between rows and 50 cm within row (20,000 plants per hectare)."))
+  }
+
+
+  rec <- paste0(recF, recD)
+
+  #TODO: This only provides the minimal information to return to the user. We may consider adding following information:
+  #1. Make sure they grow the right maize variety (should be mature in 95 days max), and the right cassava variety. Should also make recommendations on the right cassava variety.
+  #2. Fertilizer application will also increase cassava yield - but this is not accounted for in cost-benefit calculations.
+  #3. Some explanation included on why fertilizer is not recommended, or why high density is not recommended - need to evaluate if this is not too cryptic.
+  #4. Possible issues with the input data - especially if user provides unrealistic prices for maize produce / fertilizers.
+  #5. Currently reports the increase in maize production in nr of cobs, even if the user reported to sell as grain (NEEDS TO BE URGENTLY ADDRESSED - CONFUSING! Requires adapting the getICrecommendations function)
+  rec <- gsub("  ", " ", rec)
+
+
+  return(rec)
+
+}
+
+
+
 # Process recommendations for Nigeria (NG)
 process_IC_NG <- function(
   IC, country, areaHa, CMP, cobUP, fertilizers, riskAtt,

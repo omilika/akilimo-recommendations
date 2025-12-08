@@ -1,4 +1,5 @@
 
+
 #' function to creat a data frame with fertilizers
 #' @return: data frame with (type, N_cont, P_cont, K_cont, price) The NPK is elemental concentration and price is per kg of fertilizer
 #' @example
@@ -176,6 +177,8 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
 
 
 get_fertilizers <- function(body, country) {
+
+
 	fert <- list(
 		country = country,
 		# UREA
