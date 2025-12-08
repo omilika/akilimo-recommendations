@@ -35,7 +35,8 @@ if(os != "windows"){
 
 pandoc <- Sys.getenv("RSTUDIO_PANDOC")
 
-ff <- grep("api", list.files(srcdir), invert=TRUE, value=TRUE)
+srcdir <- "R"
+ff <- grep("api", list.files("srcdir), invert=TRUE, value=TRUE)
 for (f in ff) source(file.path(srcdir, f))
 
 root <- Plumber$new()

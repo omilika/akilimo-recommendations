@@ -4,14 +4,10 @@ this <- system('hostname', TRUE)
 if (this == "LAPTOP-IVSPBGCA") {
 	akpath <- "C:/github/omilika/akilimo-recommendations"
 } else {
-
+	akpath <- "."
 }
-srcdir <- akpath
-datadir <- akpath
+srcdir <- file.path(akpath, "R")
 testdir <- file.path(akpath, "tests")
-
-#srcdir <- "."
-
 
 library(limSolve)
 library(tidyr)
