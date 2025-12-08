@@ -4,7 +4,7 @@ this <- system('hostname', TRUE)
 if (this == "LAPTOP-IVSPBGCA") {
 	akpath <- "C:/github/omilika/akilimo-recommendations"
 } else {
-
+	akpath <- "."
 }
 srcdir <- akpath
 datadir <- akpath
