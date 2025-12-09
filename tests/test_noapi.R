@@ -32,6 +32,7 @@ out <- lapply(1:27, test)
 cmp <- readRDS(file.path(testdir, "test_out.rds"))
 
 for (i in 1:27) {
+	cat(i, " ------\n")
 	x <- jsonlite::fromJSON(cmp[[i]])$data
 	y <- out[[i]]$data
 	a <- tinytest::expect_equal(x$recommendation, y$recommendation[1])
@@ -40,7 +41,6 @@ for (i in 1:27) {
 		b <- tinytest::expect_equivalent(x$recommendations, y$recommendations, tolerance=0.0001)
 		if (!b) print(b)
 	} 
-	cat(i, " ------\n")
 }
 
 

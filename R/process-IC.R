@@ -16,8 +16,7 @@ getICrecommendations <- function(areaHa = 1,
   if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
 
   #calculating expected yield increase from fertilizer
-  maizeY <- data.frame(CMP = 1:5,
-                       dY = c(0, 6500, 4000, 2500, 0))
+  maizeY <- data.frame(CMP = 1:5, dY = c(0, 6500, 4000, 2500, 0))
 
   dMY <- maizeY[maizeY$CMP == CMP,]$dY
   dMP <- dMY * areaHa #extra maize production for the area of the field
@@ -31,7 +30,7 @@ getICrecommendations <- function(areaHa = 1,
     FRATE <- 0
   } else {
     #calculating fertilizer requirement
-    E <- t(data.matrix(fertilizers[, 2:4]))
+    E <- t(data.matrix(fertilizers[, c("N_cont", "P_cont", "K_cont")]))
     F <- c(91, 21, 37.5) #ideally 2 bags of urea + 6 bags of NPK15:15:15
     G <- diag(nrow(fertilizers))
     H <- rep(0, nrow(fertilizers))

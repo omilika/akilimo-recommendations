@@ -629,7 +629,7 @@ getCISrecommendations <- function(areaHa = 1,
 
   if (rec_IC) {
     #calculating fertilizer requirement
-    E <- t(data.matrix(fertilizers[, 2:4]))
+    E <- t(data.matrix(fertilizers[, c("N_cont", "P_cont", "K_cont")]))
     #F <- c(68, 19.6, 56.8) #ideally 2 bags of urea + 6 bags of NPK15:15:15
     F <- c(68, 33.2, 60) #ideally 2 bags of urea + 8 bags of NPK17:17:17
     G <- diag(nrow(fertilizers))

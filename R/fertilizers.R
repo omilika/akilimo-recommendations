@@ -88,7 +88,17 @@ get_fertilizers2 <- function(js, country) {
 	na <- rowSums(is.na(fd)) > 0
 	if (any(na)) {
 		message("missing values for fertilizer type: ", paste(fd$type[na], collapse=", "))
+		fd <- fd[!na, ]
 	}
+
+	# backward compatibility to keep results verbatim the same
+	i <- fd$type=="urea"
+	if (any(i)) {
+		fd$type[i] <- "Urea" 
+		fd <- rbind(fd[i,], fd[!i,])
+	}
+	i <- grep("^NPK", fd$type)
+	fd$type[i] <- paste0(substr(fd$type[i], 1, 5), "_", substr(fd$type[i], 6, 7),  "_", substr(fd$type[i], 8, 9))
 
 	#RH there could be some sanity checking on the prices, to assure they are not outside a reasonable range
 
