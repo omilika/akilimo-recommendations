@@ -76,15 +76,3 @@ for (i in 1:27) {
 	cat("= ", i, " ", bd$country, " ------\n")
 }
 
-for (f in grep("api", list.files(srcdir), invert=TRUE, value=TRUE)) source(file.path(srcdir, f))
-
-for (i in 1:27) {
-	cat("= ", i, " ", bd$country, " ------\n")
-	js <- readLines(paste0(testdir, gsub("xxx", i, "/input/in_xxx.json")))
-	js <- jsonlite::fromJSON(js)
-	a <- get_fertilizers(js, js$country)
-	a <- a[order(a$type), ]
-	b <- get_fertilizers2(js, bd$country)[, c("type", "N_cont", "P_cont", "K_cont", "costPerBag", "bagWeight", "price")]
-	b <- b[order(b$type), ]
-	print(b)
-}

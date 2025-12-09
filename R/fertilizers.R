@@ -351,7 +351,7 @@ get_fertilizers <- function(body, country) {
 		FOMITOTAHAZABagWt = process_json_value("FOMITOTAHAZABagWt", body, default_value = 50),
 
 		# newFert1
-		newFert1name = process_json_value("newFert1name", body, NA),
+		newFert1name = process_json_value("newFert1name", body),
 		newFert1N_cont = process_json_value("newFert1N_cont", body, NA),
 		newFert1P2O5 = process_json_value("newFert1P2O5", body, NA),
 		newFert1K2O = process_json_value("newFert1K2O", body, NA),
@@ -361,7 +361,7 @@ get_fertilizers <- function(body, country) {
 		newFert1BagWt = process_json_value("newFert1BagWt", body, default_value = 50),
 
 		# newFert2
-		newFert2name = process_json_value("newFert2name", body, NA),
+		newFert2name = process_json_value("newFert2name", body),
 		newFert2N_cont = process_json_value("newFert2N_cont", body, NA),
 		newFert2P2O5 = process_json_value("newFert2P2O5", body, NA),
 		newFert2K2O = process_json_value("newFert2K2O", body, NA),
@@ -369,7 +369,7 @@ get_fertilizers <- function(body, country) {
 		newFert2BagWt = process_json_value("newFert2BagWt", body, default_value = 50),
 
 		# newFert3
-		newFert3name = process_json_value("newFert3name", body, NA),
+		newFert3name = process_json_value("newFert3name", body),
 		newFert3N_cont = process_json_value("newFert3N_cont", body, NA),
 		newFert3P2O5 = process_json_value("newFert3P2O5", body, NA),
 		newFert3K2O = process_json_value("newFert3K2O", body, NA),
@@ -377,7 +377,7 @@ get_fertilizers <- function(body, country) {
 		newFert3BagWt = process_json_value("newFert3BagWt", body, default_value = 50),
 
 		# newFert4
-		newFert4name = process_json_value("newFert4name", body, NA),
+		newFert4name = process_json_value("newFert4name", body),
 		newFert4N_cont = process_json_value("newFert4N_cont", body, NA),
 		newFert4P2O5 = process_json_value("newFert4P2O5", body, NA),
 		newFert4K2O = process_json_value("newFert4K2O", body, NA),
@@ -385,7 +385,7 @@ get_fertilizers <- function(body, country) {
 		newFert4BagWt = process_json_value("newFert4BagWt", body, default_value = 50),
 
 		# newFert5
-		newFert5name = process_json_value("newFert5name", body, NA),
+		newFert5name = process_json_value("newFert5name", body),
 		newFert5N_cont = process_json_value("newFert5N_cont", body, NA),
 		newFert5P2O5 = process_json_value("newFert5P2O5", body, NA),
 		newFert5K2O = process_json_value("newFert5K2O", body, NA),
