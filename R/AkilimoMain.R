@@ -97,7 +97,9 @@ run_akilimo <- function(json) {
     }
 
     ##call the fertilizerFunc in the AkilimoFunctions file
-    fertilizers <- get_fertilizers(body, country)
+    #fertilizers <- get_fertilizers(body, country)
+	# use new function instead
+    fertilizers <- get_fertilizers2(body, country)
 
     message("fertilizers done")
 

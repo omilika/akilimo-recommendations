@@ -6,41 +6,49 @@ get_fertilizers2 <- function(js, country) {
 	get_df <- function(js) {
 		nms <- names(js)
 		ava <- grep("available$", nms, value=TRUE)
-		ava <- data.frame(name=gsub("available$", "", ava), available=unlist(js[ava]))
-		ava$name <- gsub("DOLOMITEA", "DOLOMITE", ava$name)
+		ava <- data.frame(type=gsub("available$", "", ava), available=unlist(js[ava]))
+		ava$type <- gsub("DOLOMITEA", "DOLOMITE", ava$type)
 		
 		cost <- grep("CostperBag$", nms, value=TRUE)
-		cost <- data.frame(name=gsub("CostperBag$", "", cost), cost=unlist(js[cost]))
+		cost <- data.frame(type=gsub("CostperBag$", "", cost), costPerBag=unlist(js[cost]))
 		
 		wt <- grep("BagWt$", nms, value=TRUE)
-		wt <- data.frame(name=gsub("BagWt$", "", wt), weight=unlist(js[wt]))
+		wt <- data.frame(type=gsub("BagWt$", "", wt), bagWeight=unlist(js[wt]))
 		
-		fert <- merge(ava, cost, by="name", all=TRUE)
-		fert <- merge(fert, wt, by="name", all=TRUE)
+		fert <- merge(ava, cost, by="type", all=TRUE)
+		fert <- merge(fert, wt, by="type", all=TRUE)
 		
 		fert
 	}
-
 	d <- get_df(js)
-	#RH: these prices are really bag costs but there is no adjustment for bag size?
-	default_prices <- read.csv("Default_prices.csv")
-	default_prices <- default_prices[default_prices$Country == country, ]
-	
-	m <- match(d$name, default_prices$Item)
-	i <- d$cost == 0
-	d$cost[i] <- default_prices$Price[m[i]] 
+	d <- d[d$available, ]
+	i <- d$costPerBag == 0
 
+	if (any(i)) {
+		#RH: these prices are really bag costs but there is no adjustment for bag size?
+		# NPK201226 price needs to be added for TZ and NG
+		default_prices <- read.csv("Default_prices.csv")
+		default_prices <- default_prices[default_prices$Country == country, ]		
+		m <- match(d$type, default_prices$Item)
+		i <- d$costPerBag == 0
+		d$costPerBag[i] <- default_prices$Price[m[i]] 
+	}
+
+	#RH this should go to a file. Alternatively could be computed for NPK
 	fd <- data.frame(
-		name = c("urea", "MOP", "DAP", "NPK201010", "NPK151515", "TSP", "NPK171717", "NPK201226", "CAN", "SSP", "FOMIIMBURA", "FOMIBAGARA", "FOMITOTAHAZA", "NPK112221", "NPK251010", "NPK152020", "NPK201216", "NPK23105", "NPK123017"), 
+		type = c("urea", "MOP", "DAP", "NPK201010", "NPK151515", "TSP", "NPK171717", "NPK201226", "CAN", "SSP", "FOMIIMBURA", "FOMIBAGARA", "FOMITOTAHAZA", "NPK112221", "NPK251010", "NPK152020", "NPK201216", "NPK23105", "NPK123017"), 
 		N_cont = c(0.46, 0, 0.18, 0.2, 0.15, 0, 0.17, 0.2, 0.27, 0, 0.09, 0.11, 0.21, 0.11, 0.25, 0.15, 0.2, 0.23, 0.12), 
 		P_cont = c(0, 0, 0.2, 0.044, 0.07, 0.2, 0.074, 0.052, 0, 0.15, 0.0968, 0, 0, 0.1, 0.044, 0.088, 0.0520, 0.044, 0.132), 
 		K_cont = c(0, 0.6, 0, 0.083, 0.125, 0, 0.15, 0.216, 0, 0, 0.0332, 0.1826, 0.0664, 0.17, 0.083, 0.166, 0.132, 0.0415, 0.14)
 	)
 
-	fd_cont <- merge(d, fd, by="name", all.x=TRUE)
-    fd_cont <- fd_cont[fd_cont$available == TRUE,]
+	#NPK must have be followed by 6 numbers
+	#this needs to be fixed upstream
+	fd$type[fd$type == "NPK23105"] <- "NPK231005"
+
+	fd_cont <- merge(d, fd, by="type", all.x=TRUE)
 	
-	fd_cont$price <- fd_cont$cost / fd_cont$weight
+	fd_cont$price <- fd_cont$costPerBag / fd_cont$bagWeight
 	fd_cont$available <- NULL
 
 # if (!all(is.na(c(newFert1name, newFert2name, newFert3name, newFert4name, newFert5name)))) {
@@ -49,24 +57,24 @@ get_fertilizers2 <- function(js, country) {
 		nms <- names(js)
 
 		ava <- grep("^newFert.name$", nms, value=TRUE)
-		ava <- data.frame(name=gsub("^newFert.", "", ava))
+		ava <- data.frame(type=gsub("^newFert.", "", ava))
 		if (nrow(ava) == 0) return(NULL)
 		ava$available <- TRUE
 
 		N <- grep("^newFert.N_cont$", nms, value=TRUE)
-		N <- data.frame(name=gsub("^newFert.", "", N), N=unlist(js[N]))
+		N <- data.frame(type=gsub("^newFert.", "", N), N=unlist(js[N]))
 
 		P2O5 <- grep("^newFert.P2O5_cont$", nms, value=TRUE)
-		P2O5 <- data.frame(name=gsub("^newFert.", "", P2O5), P2O5=unlist(js[P2O5]))
+		P2O5 <- data.frame(type=gsub("^newFert.", "", P2O5), P2O5=unlist(js[P2O5]))
 
 		K2O <- grep("^newFert.K2O_cont$", nms, value=TRUE)
-		K2O <- data.frame(name=gsub("^newFert.", "", K2O), K2O=unlist(js[K2O]))
+		K2O <- data.frame(type=gsub("^newFert.", "", K2O), K2O=unlist(js[K2O]))
 
 		cost <- grep("^newFert.CostperBag", nms, value=TRUE)
-		cost <- data.frame(name=gsub("^newFert.", "", cost), cost=unlist(js[cost]))
+		cost <- data.frame(type=gsub("^newFert.", "", cost), costPerBag=unlist(js[cost]))
 
 		wt <- grep("^newFert.BagWt", nms, value=TRUE)
-		wt <- data.frame(name=gsub("^newFert.", "", wt), wt=unlist(js[wt]))
+		wt <- data.frame(type=gsub("^newFert.", "", wt), bagWeight=unlist(js[wt]))
 
 		new <- merge(ava, N, by="name", all=TRUE)
 		new <- merge(new, P2O5, by="name", all=TRUE)
@@ -77,16 +85,22 @@ get_fertilizers2 <- function(js, country) {
         new$K_cont <- round(0.83 * new$K2O_cont, digits = 3)
 		new$P2O5_cont <- new$K2O_cont <- NULL
 
-		new$price <- new$cost / new$weight
+		new$price <- new$costPerBag / new$bagWeight
 		new
 	}
 
 	fd_new <- get_new(js)
-    fd_cont <- rbind(fd_cont, fd_new)
+	fd <- dplyr::bind_rows(fd_cont, fd_new)
+	na <- rowSums(is.na(fd)) > 0
+	if (any(na)) {
+		message("missing values for fertilizer type: ", paste(fd$type[na], collapse=", "))
+	}
 
-	fd_cont
+	fd
 }
 
+
+### BELOW IS NOT USED ANYMORE
 
 
 #' function to creat a data frame with fertilizers
@@ -112,6 +126,10 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
                            FOMIIMBURAavailable = FALSE, FOMIIMBURACostperBag = NA, FOMIIMBURABagWt = 50,
                            FOMIBAGARAavailable = FALSE, FOMIBAGARACostperBag = NA, FOMIBAGARABagWt = 50,
                            FOMITOTAHAZAavailable = FALSE, FOMITOTAHAZACostperBag = NA, FOMITOTAHAZABagWt = 50,
+
+
+							Nafakaavailable = FALSE, NafakaCostperBag = NA, NafakaBagWt = 50,
+
 
                            newFert1name = NA, newFert1N_cont = NA, newFert1P2O5 = NA, newFert1K2O = NA, newFert1CostperBag = NA, newFert1BagWt = NA,
                            newFert2name = NA, newFert2N_cont = NA, newFert2P2O5 = NA, newFert2K2O = NA, newFert2CostperBag = NA, newFert2BagWt = NA,
@@ -214,7 +232,7 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
                                    expand.grid(N_cont = c(newFert1N_cont, newFert2N_cont, newFert3N_cont, newFert4N_cont, newFert5N_cont)),
                                    expand.grid(P2O5_cont = c(newFert1P2O5, newFert2P2O5, newFert3P2O5, newFert4P2O5, newFert5P2O5)),
                                    expand.grid(K2O_cont = c(newFert1K2O, newFert2K2O, newFert3K2O, newFert4K2O, newFert5K2O)),
-                                   expand.grid(newFertCostperBag = c(newFert1CostperBag, newFert2CostperBag, newFert3CostperBag, newFert4CostperBag, newFert5CostperBag)),
+                                   expand.grid(newFertCost1perBag = c(newFert1CostperBag, newFert2CostperBag, newFert3CostperBag, newFert4CostperBag, newFert5CostperBag)),
                                    expand.grid(newFertBagWt = c(newFert1BagWt, newFert2BagWt, newFert3BagWt, newFert4BagWt, newFert5BagWt)))
 
     OtherFertilizers <- droplevels(OtherFertilizers[as.numeric(as.factor(OtherFertilizers$type)) == 1,])
@@ -370,8 +388,9 @@ get_fertilizers <- function(body, country) {
 		newFert1N_cont = process_json_value("newFert1N_cont", body),
 		newFert1P2O5 = process_json_value("newFert1P2O5", body),
 		newFert1K2O = process_json_value("newFert1K2O", body),
-		#newFertCostperBag = process_json_value("newFertCostperBag", body),
-		newFertCost1perBag = process_json_value("newFertCost1perBag", body),
+		#newFertCostperBag = process_json_value("newFertCostperBag", body), 
+# should be this ?
+		newFert1CostperBag = process_json_value("newFertCost1perBag", body),
 		newFert1BagWt = process_json_value("newFert1BagWt", body, default_value = 50),
 
 		# newFert2

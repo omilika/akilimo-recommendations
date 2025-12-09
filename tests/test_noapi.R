@@ -43,3 +43,18 @@ for (i in 1:27) {
 	cat(i, " ------\n")
 }
 
+
+for (i in 1:27) {
+	js <- readLines(paste0(testdir, gsub("xxx", i, "/input/in_xxx.json")))
+	bd <- tryCatch(jsonlite::fromJSON(js), error = function(e) NULL)
+	a <- get_fertilizers(bd, bd$country)
+	b <- get_fertilizers2(bd, bd$country)[, c("type", "N_cont", "P_cont", "K_cont", "costPerBag", "bagWeight", "price")]
+	a <- a[order(a$type), ]
+	b$type[b$type=="urea"] <- "Urea"
+	b <- b[order(b$type), ]
+	if ((nrow(a) != nrow(b)) || (!isTRUE(all(a == b)))) {
+		print(a)
+		print(b)
+	}
+	cat("= ", i, " ", bd$country, " ------\n")
+}
