@@ -88,9 +88,8 @@ run_akilimo <- function(json) {
 
 
     #now call the funtion to do the computations
-    print(paste("Starting plumbR version 4 script processing ---", country))
-
-    print(paste("Planting dated PD and HD", PD, HD))
+    message(paste("Starting plumbR version 4 script processing ---", country))
+	message(paste("Planting dated PD and HD", PD, HD))
 
     #riskAtt <- 0
     if (country == "BI") {
@@ -100,7 +99,7 @@ run_akilimo <- function(json) {
     ##call the fertilizerFunc in the AkilimoFunctions file
     fertilizers <- get_fertilizers(body, country)
 
-    print("Finished processing fertilizers")
+    message("fertilizers done")
 
     if (method_ploughing == "NA") method_ploughing <- "N/A"
     if (method_ridging == "NA") method_ridging <- "N/A"
@@ -356,7 +355,7 @@ run_akilimo <- function(json) {
     spinfo_rw <- clean_data(TRNS$spinfo, 3)
     spinfo_tz <- clean_data(TRNS$spinfo, 2)
 
-    print("Begin processing")
+    message("Begin processing")
     # Define countries with the same logic
 
     selected_key <- NULL

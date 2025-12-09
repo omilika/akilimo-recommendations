@@ -402,7 +402,7 @@ IC_MarkdownText <- function(rr, fertilizers, userName, country,
 
   currency <- ifelse(country == "NG", "NGN", ifelse(country == "RW", "RWF", ifelse(country == "GH", "GHS", "TZS")))
 
-  print(paste("Processing IC_MarkdownText  with risk attitutde", riskAtt))
+  message(paste("Processing IC_MarkdownText  with risk attitutde", riskAtt))
   MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
                               unit_field = areaUnits, plant_date = PD, hvst_date = HD, userPhoneCC = userPhoneCC,
                               email = email, latitude = lat, longitude = lon, product = cassPD, costcassava = rootUP, unitcassava = cassPD, maxinvest = maxInv,

@@ -1,5 +1,94 @@
 
 
+get_fertilizers2 <- function(js, country) {
+
+
+	get_df <- function(js) {
+		nms <- names(js)
+		ava <- grep("available$", nms, value=TRUE)
+		ava <- data.frame(name=gsub("available$", "", ava), available=unlist(js[ava]))
+		ava$name <- gsub("DOLOMITEA", "DOLOMITE", ava$name)
+		
+		cost <- grep("CostperBag$", nms, value=TRUE)
+		cost <- data.frame(name=gsub("CostperBag$", "", cost), cost=unlist(js[cost]))
+		
+		wt <- grep("BagWt$", nms, value=TRUE)
+		wt <- data.frame(name=gsub("BagWt$", "", wt), weight=unlist(js[wt]))
+		
+		fert <- merge(ava, cost, by="name", all=TRUE)
+		fert <- merge(fert, wt, by="name", all=TRUE)
+		
+		fert
+	}
+
+	d <- get_df(js)
+	#RH: these prices are really bag costs but there is no adjustment for bag size?
+	default_prices <- read.csv("Default_prices.csv")
+	default_prices <- default_prices[default_prices$Country == country, ]
+	
+	m <- match(d$name, default_prices$Item)
+	i <- d$cost == 0
+	d$cost[i] <- default_prices$Price[m[i]] 
+
+	fd <- data.frame(
+		name = c("urea", "MOP", "DAP", "NPK201010", "NPK151515", "TSP", "NPK171717", "NPK201226", "CAN", "SSP", "FOMIIMBURA", "FOMIBAGARA", "FOMITOTAHAZA", "NPK112221", "NPK251010", "NPK152020", "NPK201216", "NPK23105", "NPK123017"), 
+		N_cont = c(0.46, 0, 0.18, 0.2, 0.15, 0, 0.17, 0.2, 0.27, 0, 0.09, 0.11, 0.21, 0.11, 0.25, 0.15, 0.2, 0.23, 0.12), 
+		P_cont = c(0, 0, 0.2, 0.044, 0.07, 0.2, 0.074, 0.052, 0, 0.15, 0.0968, 0, 0, 0.1, 0.044, 0.088, 0.0520, 0.044, 0.132), 
+		K_cont = c(0, 0.6, 0, 0.083, 0.125, 0, 0.15, 0.216, 0, 0, 0.0332, 0.1826, 0.0664, 0.17, 0.083, 0.166, 0.132, 0.0415, 0.14)
+	)
+
+	fd_cont <- merge(d, fd, by="name", all.x=TRUE)
+    fd_cont <- fd_cont[fd_cont$available == TRUE,]
+	
+	fd_cont$price <- fd_cont$cost / fd_cont$weight
+	fd_cont$available <- NULL
+
+# if (!all(is.na(c(newFert1name, newFert2name, newFert3name, newFert4name, newFert5name)))) {
+
+	get_new <- function(js) {
+		nms <- names(js)
+
+		ava <- grep("^newFert.name$", nms, value=TRUE)
+		ava <- data.frame(name=gsub("^newFert.", "", ava))
+		if (nrow(ava) == 0) return(NULL)
+		ava$available <- TRUE
+
+		N <- grep("^newFert.N_cont$", nms, value=TRUE)
+		N <- data.frame(name=gsub("^newFert.", "", N), N=unlist(js[N]))
+
+		P2O5 <- grep("^newFert.P2O5_cont$", nms, value=TRUE)
+		P2O5 <- data.frame(name=gsub("^newFert.", "", P2O5), P2O5=unlist(js[P2O5]))
+
+		K2O <- grep("^newFert.K2O_cont$", nms, value=TRUE)
+		K2O <- data.frame(name=gsub("^newFert.", "", K2O), K2O=unlist(js[K2O]))
+
+		cost <- grep("^newFert.CostperBag", nms, value=TRUE)
+		cost <- data.frame(name=gsub("^newFert.", "", cost), cost=unlist(js[cost]))
+
+		wt <- grep("^newFert.BagWt", nms, value=TRUE)
+		wt <- data.frame(name=gsub("^newFert.", "", wt), wt=unlist(js[wt]))
+
+		new <- merge(ava, N, by="name", all=TRUE)
+		new <- merge(new, P2O5, by="name", all=TRUE)
+		new <- merge(new, K2O, by="name", all=TRUE)
+		new <- merge(new, cost, by="name", all=TRUE)
+		new <- merge(new, wt, by="name", all=TRUE)
+        new$P_cont <- round(0.44 * new$P2O5_cont, digits = 3)
+        new$K_cont <- round(0.83 * new$K2O_cont, digits = 3)
+		new$P2O5_cont <- new$K2O_cont <- NULL
+
+		new$price <- new$cost / new$weight
+		new
+	}
+
+	fd_new <- get_new(js)
+    fd_cont <- rbind(fd_cont, fd_new)
+
+	fd_cont
+}
+
+
+
 #' function to creat a data frame with fertilizers
 #' @return: data frame with (type, N_cont, P_cont, K_cont, price) The NPK is elemental concentration and price is per kg of fertilizer
 #' @example
@@ -31,7 +120,7 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
                            newFert5name = NA, newFert5N_cont = NA, newFert5P2O5 = NA, newFert5K2O = NA, newFert5CostperBag = NA, newFert5BagWt = NA, country, ...) {
 	dots <- list(...)
 	if (length(dots) > 0) {
-		print(paste("arguments ignored by fertilizerFunc:", paste(names(dots), collapse=", ")))
+		message(paste("arguments ignored by fertilizerFunc:", paste(names(dots), collapse=", ")))
 	}
 
   Default_prices <- read.csv("Default_prices.csv")

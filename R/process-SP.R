@@ -429,7 +429,7 @@ process_SP <- function(
       "AKILIMO hutoa ushauri wa upandaji wa ratiba ikiwa angalau wakati wako wa upandaji au wakati wa kuvuna au zote mbili zinabadilika. Tafadhali toa habari hii na utashauriwa wakati mzuri wa kupanda na kuvuna kwa eneo lako"
     }
   } else {
-    print("Processing SP")
+    message("Processing SP")
 
     res[["SP"]] <- getSPrecommendations(
       areaHa = areaHa,

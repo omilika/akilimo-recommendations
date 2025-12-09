@@ -201,7 +201,7 @@ process_IC_NG <- function(
   maizeUW, cassUW, saleSF, nameSF, rootUP, cassPD, maxInv,
   maizeUP, res, recText
 ) {
-  print(paste("Processing IC for", country))
+  message(paste("Processing IC for", country))
 
   # Generate IC recommendations
   res[["IC"]] <- getICrecommendations(
@@ -272,7 +272,7 @@ process_IC_TZ <- function(
   res, recText_input
 ) {
   recText <- recText_input
-  print(paste("Processing IC for", country))
+  message(paste("Processing IC for", country))
 
   # Generate CIS recommendations
   res[["IC"]] <- getCISrecommendations(

@@ -366,8 +366,7 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
   no_recommendation_msg <- "We do not have fertilizer recommendation for your location because your location is out of the recommendation domain AKILIMO is currently serving."
   FRrecom <- NULL
 
-  cat(paste("Processing FR", FR))
-  print("Processing FR section now")
+  message("Processing FR")
 
   plumberRes$FR <- getFRrecommendations(
     lat = lat, lon = lon, pd = pd, pw = pw, HD = HD, had = had, maxInv = maxInv,
@@ -375,7 +374,7 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
     FCY = FCY, riskAtt = riskAtt
   )
 
-  cat("Finished processing\n")
+  message("Finished processing")
 
   if (all(plumberRes$FR == no_recommendation_msg)) {
     if (country %in% no_fr_recommendation_countries) {

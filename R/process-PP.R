@@ -239,7 +239,7 @@ process_PP <- function(
   res, recText_input
 ) {
   recText <- recText_input
-  print(paste("Processing PP for", country))
+  message(paste("Processing PP for", country))
 
   # Generate PP recommendations
   res[["PP"]] <- getPPrecommendations(

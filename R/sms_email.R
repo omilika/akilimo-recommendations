@@ -24,7 +24,7 @@ sendSMSReport <- function(SMStext, dst) {
     for (txt in SMStext) {
 		if (nchar(txt) > 1600) {
 			txt <- paste0(substr(1, 1588, txt), " [truncated]")
-			print("text message truncated to the 1600 character limit")
+			message("text message truncated to the 1600 character limit")
 		}
         httr::POST(url, httr::authenticate(AUTH_ID, AUTH_TOKEN), body=list(src=src, dst=dst, text=txt))
 	}
@@ -37,7 +37,7 @@ sendSMSReport <- function(SMStext, dst) {
 
 sendEmailReport <- function(userEmail, FR, IC, PP, SP, FRrecom, ICrecom, country, PPrecom, SPrecom, userPhoneNr) {
 
-  print(paste("Running email generation FR=", FR, "IC=", IC, "PP=", PP, "SP=", SP, "FRrecom=", FRrecom, "ICrecom=", ICrecom))
+	message(paste("Running email generation FR=", FR, "IC=", IC, "PP=", PP, "SP=", SP, "FRrecom=", FRrecom, "ICrecom=", ICrecom))
 
 	PDFs <- NULL
 	add_pdf <- function(f) {PDFs <<- c(PDFs, f); f}
