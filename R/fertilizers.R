@@ -1,11 +1,13 @@
 
+		
 
 get_fertilizers2 <- function(js, country) {
 
 
 	get_df <- function(js) {
 		nms <- names(js)
-		ava <- grep("available$", nms, value=TRUE)
+		ava <-
+		grep("available$", nms, value=TRUE)
 		ava <- data.frame(type=gsub("available$", "", ava), available=unlist(js[ava]))
 		ava$type <- gsub("DOLOMITEA", "DOLOMITE", ava$type)
 		
@@ -64,9 +66,9 @@ get_fertilizers2 <- function(js, country) {
 		if (length(ava) == 0) return(NULL)
 		ntype <- gsub("^newFert.", "", js[ava])
 
-		N <- grep("^newFert.N_content", nms, value=TRUE)
-		P2O5 <- grep("^newFert.P2O5_content", nms, value=TRUE)
-		K2O <- grep("^newFert.K2O_content", nms, value=TRUE)
+		N <- grep("^newFert.N_cont", nms, value=TRUE)
+		P2O5 <- grep("^newFert.P2O5", nms, value=TRUE)
+		K2O <- grep("^newFert.K2O", nms, value=TRUE)
 		cost <- grep("^newFert.CostperBag", nms, value=TRUE)
 		wt <- grep("^newFert.BagWt", nms, value=TRUE)
 
@@ -87,6 +89,8 @@ get_fertilizers2 <- function(js, country) {
 	if (any(na)) {
 		message("missing values for fertilizer type: ", paste(fd$type[na], collapse=", "))
 	}
+
+	#RH there could be some sanity checking on the prices, to assure they are not outside a reasonable range
 
 	fd
 }
@@ -120,14 +124,14 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
                            FOMITOTAHAZAavailable = FALSE, FOMITOTAHAZACostperBag = NA, FOMITOTAHAZABagWt = 50,
 
 
-							Nafakaavailable = FALSE, NafakaCostperBag = NA, NafakaBagWt = 50,
+							Nafakaavailable = FALSE, NafakaCostperBag = 0, NafakaBagWt = 50,
 
 
-                           newFert1name = NA, newFert1N_cont = NA, newFert1P2O5 = NA, newFert1K2O = NA, newFert1CostperBag = NA, newFert1BagWt = NA,
-                           newFert2name = NA, newFert2N_cont = NA, newFert2P2O5 = NA, newFert2K2O = NA, newFert2CostperBag = NA, newFert2BagWt = NA,
-                           newFert3name = NA, newFert3N_cont = NA, newFert3P2O5 = NA, newFert3K2O = NA, newFert3CostperBag = NA, newFert3BagWt = NA,
-                           newFert4name = NA, newFert4N_cont = NA, newFert4P2O5 = NA, newFert4K2O = NA, newFert4CostperBag = NA, newFert4BagWt = NA,
-                           newFert5name = NA, newFert5N_cont = NA, newFert5P2O5 = NA, newFert5K2O = NA, newFert5CostperBag = NA, newFert5BagWt = NA, country, ...) {
+                           newFert1name = NA, newFert1N_cont = NA, newFert1P2O5 = NA, newFert1K2O = NA, newFert1CostperBag = 0, newFert1BagWt = NA,
+                           newFert2name = NA, newFert2N_cont = NA, newFert2P2O5 = NA, newFert2K2O = NA, newFert2CostperBag = 0, newFert2BagWt = NA,
+                           newFert3name = NA, newFert3N_cont = NA, newFert3P2O5 = NA, newFert3K2O = NA, newFert3CostperBag = 0, newFert3BagWt = NA,
+                           newFert4name = NA, newFert4N_cont = NA, newFert4P2O5 = NA, newFert4K2O = NA, newFert4CostperBag = 0, newFert4BagWt = NA,
+                           newFert5name = NA, newFert5N_cont = NA, newFert5P2O5 = NA, newFert5K2O = NA, newFert5CostperBag = 0, newFert5BagWt = NA, country, ...) {
 	dots <- list(...)
 	if (length(dots) > 0) {
 		message(paste("arguments ignored by fertilizerFunc:", paste(names(dots), collapse=", ")))
@@ -215,59 +219,30 @@ fertilizerFunc <- function(NPK201216available = TRUE, NPK201216CostperBag = NA, 
   fd_cont$price <- fd_cont$costPerBag / fd_cont$bagWeight
   fd_cont <- subset(fd_cont, select = -c(available))
 
-  if (any(newFert1name != "NA" |
-            newFert2name != "NA" |
-            newFert3name != "NA" |
-            newFert4name != "NA" |
-            newFert5name != "NA")) {
-    OtherFertilizers <- data.frame(expand.grid(type = c(newFert1name, newFert2name, newFert3name, newFert4name, newFert5name)),
-                                   expand.grid(N_cont = c(newFert1N_cont, newFert2N_cont, newFert3N_cont, newFert4N_cont, newFert5N_cont)),
-                                   expand.grid(P2O5_cont = c(newFert1P2O5, newFert2P2O5, newFert3P2O5, newFert4P2O5, newFert5P2O5)),
-                                   expand.grid(K2O_cont = c(newFert1K2O, newFert2K2O, newFert3K2O, newFert4K2O, newFert5K2O)),
-                                   expand.grid(newFertCost1perBag = c(newFert1CostperBag, newFert2CostperBag, newFert3CostperBag, newFert4CostperBag, newFert5CostperBag)),
-                                   expand.grid(newFertBagWt = c(newFert1BagWt, newFert2BagWt, newFert3BagWt, newFert4BagWt, newFert5BagWt)))
-
-    OtherFertilizers <- droplevels(OtherFertilizers[as.numeric(as.factor(OtherFertilizers$type)) == 1,])
-    OtherFertilizers$N_cont <- as.numeric(as.character(OtherFertilizers$N_cont))
-    OtherFertilizers$P2O5_cont <- as.numeric(as.character(OtherFertilizers$P2O5_cont))
-    OtherFertilizers$K2O_cont <- as.numeric(as.character(OtherFertilizers$K2O_cont))
-    OtherFertilizers$newFertCostperBag <- as.numeric(as.character(OtherFertilizers$newFertCostperBag))
-    OtherFertilizers$newFertBagWt <- as.numeric(as.character(OtherFertilizers$newFertBagWt))
+  if (any(!is.na(c(newFert1name, newFert2name, newFert3name, newFert4name, newFert5name)))) {
+  
+    newfert <- data.frame(
+		type = c(newFert1name, newFert2name, newFert3name, newFert4name, newFert5name),
+        N_cont = as.numeric(c(newFert1N_cont, newFert2N_cont, newFert3N_cont, newFert4N_cont, newFert5N_cont)),
+        P_cont = as.numeric(c(newFert1P2O5, newFert2P2O5, newFert3P2O5, newFert4P2O5, newFert5P2O5)),
+        K_cont = as.numeric(c(newFert1K2O, newFert2K2O, newFert3K2O, newFert4K2O, newFert5K2O)),
+        costPerBag = as.numeric(c(newFert1CostperBag, newFert2CostperBag, newFert3CostperBag, newFert4CostperBag, newFert5CostperBag)),
+        bagWeight = as.numeric(c(newFert1BagWt, newFert2BagWt, newFert3BagWt, newFert4BagWt, newFert5BagWt)),
+		price = 0
+ 	)
 
 
-    if (nrow(OtherFertilizers) > 0) {
-      newfert <- NULL
-      for (k in 1:nrow(OtherFertilizers)) {
-        OF <- OtherFertilizers[k,]
+	notna <- rowSums(is.na(newfert)) == 0
+	newfert <- newfert[notna, ]
 
-        if (OF$N_cont == 0) {
-          N_cont <- 0
-        }else {
-          #N_cont <- round(as.numeric(OF$N_cont)/100,digits=3)
-          N_cont <- OF$N_cont
-        }
-
-        if (OF$P2O5_cont == 0) {
-          P_cont <- 0
-        }else {
-          P_cont <- round(0.44 * as.numeric(OF$P2O5_cont), digits = 3)
-        }
-
-        if (OF$K2O_cont == 0) {
-          K_cont <- 0
-        }else {
-          K_cont <- round(0.83 * as.numeric(OF$K2O_cont), digits = 3)
-        }
-
-        fnew <- data.frame(type = OF$type, N_cont = N_cont,
-                           P_cont = P_cont, K_cont = K_cont,
-                           costPerBag = OF$newFertCostperBag, bagWeight = OF$newFertBagWt)
-        newfert <- rbind(newfert, fnew)
-      }
-      newfert$price <- newfert$costPerBag / newfert$bagWeight
-
-      fd_cont <- rbind(fd_cont, newfert)
-    }
+	newfert$N_cont[is.na(newfert$N_cont)] <- 0
+	newfert$P_cont <- round(0.44 * newfert$P_cont, 3)
+	newfert$K_cont <- round(0.83 * newfert$K_cont, 3)
+	newfert$P_cont[is.na(newfert$P_cont)] <- 0
+	newfert$K_cont[is.na(newfert$K_cont)] <- 0
+    newfert$price <- newfert$costPerBag / newfert$bagWeight
+	
+    fd_cont <- rbind(fd_cont, newfert)
   }
   return(fd_cont)
 }
@@ -376,45 +351,45 @@ get_fertilizers <- function(body, country) {
 		FOMITOTAHAZABagWt = process_json_value("FOMITOTAHAZABagWt", body, default_value = 50),
 
 		# newFert1
-		newFert1name = process_json_value("newFert1name", body),
-		newFert1N_cont = process_json_value("newFert1N_cont", body),
-		newFert1P2O5 = process_json_value("newFert1P2O5", body),
-		newFert1K2O = process_json_value("newFert1K2O", body),
+		newFert1name = process_json_value("newFert1name", body, NA),
+		newFert1N_cont = process_json_value("newFert1N_cont", body, NA),
+		newFert1P2O5 = process_json_value("newFert1P2O5", body, NA),
+		newFert1K2O = process_json_value("newFert1K2O", body, NA),
 		#newFertCostperBag = process_json_value("newFertCostperBag", body), 
 # should be this ?
-		newFert1CostperBag = process_json_value("newFertCost1perBag", body),
+		newFert1CostperBag = process_json_value("newFert1CostperBag", body, NA),
 		newFert1BagWt = process_json_value("newFert1BagWt", body, default_value = 50),
 
 		# newFert2
-		newFert2name = process_json_value("newFert2name", body),
-		newFert2N_cont = process_json_value("newFert2N_cont", body),
-		newFert2P2O5 = process_json_value("newFert2P2O5", body),
-		newFert2K2O = process_json_value("newFert2K2O", body),
-		newFert2CostperBag = process_json_value("newFert2CostperBag", body),
+		newFert2name = process_json_value("newFert2name", body, NA),
+		newFert2N_cont = process_json_value("newFert2N_cont", body, NA),
+		newFert2P2O5 = process_json_value("newFert2P2O5", body, NA),
+		newFert2K2O = process_json_value("newFert2K2O", body, NA),
+		newFert2CostperBag = process_json_value("newFert2CostperBag", body, NA),
 		newFert2BagWt = process_json_value("newFert2BagWt", body, default_value = 50),
 
 		# newFert3
-		newFert3name = process_json_value("newFert3name", body),
-		newFert3N_cont = process_json_value("newFert3N_cont", body),
-		newFert3P2O5 = process_json_value("newFert3P2O5", body),
-		newFert3K2O = process_json_value("newFert3K2O", body),
-		newFert3CostperBag = process_json_value("newFert3CostperBag", body),
+		newFert3name = process_json_value("newFert3name", body, NA),
+		newFert3N_cont = process_json_value("newFert3N_cont", body, NA),
+		newFert3P2O5 = process_json_value("newFert3P2O5", body, NA),
+		newFert3K2O = process_json_value("newFert3K2O", body, NA),
+		newFert3CostperBag = process_json_value("newFert3CostperBag", body, NA),
 		newFert3BagWt = process_json_value("newFert3BagWt", body, default_value = 50),
 
 		# newFert4
-		newFert4name = process_json_value("newFert4name", body),
-		newFert4N_cont = process_json_value("newFert4N_cont", body),
-		newFert4P2O5 = process_json_value("newFert4P2O5", body),
-		newFert4K2O = process_json_value("newFert4K2O", body),
-		newFert4CostperBag = process_json_value("newFert4CostperBag", body),
+		newFert4name = process_json_value("newFert4name", body, NA),
+		newFert4N_cont = process_json_value("newFert4N_cont", body, NA),
+		newFert4P2O5 = process_json_value("newFert4P2O5", body, NA),
+		newFert4K2O = process_json_value("newFert4K2O", body, NA),
+		newFert4CostperBag = process_json_value("newFert4CostperBag", body, NA),
 		newFert4BagWt = process_json_value("newFert4BagWt", body, default_value = 50),
 
 		# newFert5
-		newFert5name = process_json_value("newFert5name", body),
-		newFert5N_cont = process_json_value("newFert5N_cont", body),
-		newFert5P2O5 = process_json_value("newFert5P2O5", body),
-		newFert5K2O = process_json_value("newFert5K2O", body),
-		newFert5CostperBag = process_json_value("newFert5CostperBag", body),
+		newFert5name = process_json_value("newFert5name", body, NA),
+		newFert5N_cont = process_json_value("newFert5N_cont", body, NA),
+		newFert5P2O5 = process_json_value("newFert5P2O5", body, NA),
+		newFert5K2O = process_json_value("newFert5K2O", body, NA),
+		newFert5CostperBag = process_json_value("newFert5CostperBag", body, NA),
 		newFert5BagWt = process_json_value("newFert5BagWt", body, default_value = 50)
 	)
 

@@ -44,12 +44,29 @@ for (i in 1:27) {
 }
 
 
+add_new <- function(js) {
+	js$newFert1name = "My Product"
+	js$newFert1N_cont = .1
+	js$newFert1P2O5 = .1
+	js$newFert1K2O = .1
+	js$newFert1CostperBag = 100 	
+	js$newFert1BagWt = 25
+	js$newFert2name = "Your Product"
+	js$newFert2N_cont = .12
+	js$newFert2P2O5 = .15
+	js$newFert2K2O = .15
+	js$newFert2CostperBag = 70
+	js$newFert2BagWt = 45
+	js
+}
+
 for (i in 1:27) {
 	js <- readLines(paste0(testdir, gsub("xxx", i, "/input/in_xxx.json")))
 	bd <- tryCatch(jsonlite::fromJSON(js), error = function(e) NULL)
+	bd <- add_new(bd)
 	a <- get_fertilizers(bd, bd$country)
-	b <- get_fertilizers2(bd, bd$country)[, c("type", "N_cont", "P_cont", "K_cont", "costPerBag", "bagWeight", "price")]
 	a <- a[order(a$type), ]
+	b <- get_fertilizers2(bd, bd$country)[, c("type", "N_cont", "P_cont", "K_cont", "costPerBag", "bagWeight", "price")]
 	b$type[b$type=="urea"] <- "Urea"
 	b <- b[order(b$type), ]
 	if ((nrow(a) != nrow(b)) || (!isTRUE(all(a == b)))) {
@@ -57,4 +74,17 @@ for (i in 1:27) {
 		print(b)
 	}
 	cat("= ", i, " ", bd$country, " ------\n")
+}
+
+for (f in grep("api", list.files(srcdir), invert=TRUE, value=TRUE)) source(file.path(srcdir, f))
+
+for (i in 1:27) {
+	cat("= ", i, " ", bd$country, " ------\n")
+	js <- readLines(paste0(testdir, gsub("xxx", i, "/input/in_xxx.json")))
+	js <- jsonlite::fromJSON(js)
+	a <- get_fertilizers(js, js$country)
+	a <- a[order(a$type), ]
+	b <- get_fertilizers2(js, bd$country)[, c("type", "N_cont", "P_cont", "K_cont", "costPerBag", "bagWeight", "price")]
+	b <- b[order(b$type), ]
+	print(b)
 }
