@@ -15,22 +15,26 @@ get_fertilizers2 <- function(js, country) {
 		wt <- grep("BagWt$", nms, value=TRUE)
 		wt <- data.frame(type=gsub("BagWt$", "", wt), bagWeight=unlist(js[wt]))
 		
-		fert <- merge(ava, cost, by="type", all=TRUE)
-		fert <- merge(fert, wt, by="type", all=TRUE)
+		fert <- merge(ava, cost, by="type", all.x=TRUE)
+		fert <- merge(fert, wt, by="type", all.x=TRUE)
 		
 		fert
 	}
 	d <- get_df(js)
 	d <- d[d$available, ]
+	d$costPerBag[is.na(d$costPerBag)] <- 0
 	i <- d$costPerBag == 0
 
 	if (any(i)) {
-		#RH: these prices are really bag costs but there is no adjustment for bag size?
 		# NPK201226 price needs to be added for TZ and NG
+		# NPK151515, SSP also missing for TZ
+
+		#RH: these prices are bag prices. For what weight? 50 kg? If so, 
+		# if the user specified bag weight is not 50, this price needs to be adjusted. 
+		# or is that not allowed (either price and weight or nothing?)
 		default_prices <- read.csv("Default_prices.csv")
 		default_prices <- default_prices[default_prices$Country == country, ]		
 		m <- match(d$type, default_prices$Item)
-		i <- d$costPerBag == 0
 		d$costPerBag[i] <- default_prices$Price[m[i]] 
 	}
 
@@ -57,33 +61,20 @@ get_fertilizers2 <- function(js, country) {
 		nms <- names(js)
 
 		ava <- grep("^newFert.name$", nms, value=TRUE)
-		ava <- data.frame(type=gsub("^newFert.", "", ava))
-		if (nrow(ava) == 0) return(NULL)
-		ava$available <- TRUE
+		if (length(ava) == 0) return(NULL)
+		ntype <- gsub("^newFert.", "", js[ava])
 
-		N <- grep("^newFert.N_cont$", nms, value=TRUE)
-		N <- data.frame(type=gsub("^newFert.", "", N), N=unlist(js[N]))
-
-		P2O5 <- grep("^newFert.P2O5_cont$", nms, value=TRUE)
-		P2O5 <- data.frame(type=gsub("^newFert.", "", P2O5), P2O5=unlist(js[P2O5]))
-
-		K2O <- grep("^newFert.K2O_cont$", nms, value=TRUE)
-		K2O <- data.frame(type=gsub("^newFert.", "", K2O), K2O=unlist(js[K2O]))
-
+		N <- grep("^newFert.N_content", nms, value=TRUE)
+		P2O5 <- grep("^newFert.P2O5_content", nms, value=TRUE)
+		K2O <- grep("^newFert.K2O_content", nms, value=TRUE)
 		cost <- grep("^newFert.CostperBag", nms, value=TRUE)
-		cost <- data.frame(type=gsub("^newFert.", "", cost), costPerBag=unlist(js[cost]))
-
 		wt <- grep("^newFert.BagWt", nms, value=TRUE)
-		wt <- data.frame(type=gsub("^newFert.", "", wt), bagWeight=unlist(js[wt]))
 
-		new <- merge(ava, N, by="name", all=TRUE)
-		new <- merge(new, P2O5, by="name", all=TRUE)
-		new <- merge(new, K2O, by="name", all=TRUE)
-		new <- merge(new, cost, by="name", all=TRUE)
-		new <- merge(new, wt, by="name", all=TRUE)
-        new$P_cont <- round(0.44 * new$P2O5_cont, digits = 3)
-        new$K_cont <- round(0.83 * new$K2O_cont, digits = 3)
-		new$P2O5_cont <- new$K2O_cont <- NULL
+		new <- data.frame(type=ntype, N_cont=unlist(js[N]), P2O5=unlist(js[P2O5]), K2O=unlist(js[K2O]), costPerBag=unlist(js[cost]), bagWeight=unlist(js[wt]))
+
+        new$P_cont <- round(0.44 * new$P2O5, digits = 3)
+        new$K_cont <- round(0.83 * new$K2O, digits = 3)
+		new$P2O5 <- new$K2O <- NULL
 
 		new$price <- new$costPerBag / new$bagWeight
 		new
@@ -91,6 +82,7 @@ get_fertilizers2 <- function(js, country) {
 
 	fd_new <- get_new(js)
 	fd <- dplyr::bind_rows(fd_cont, fd_new)
+	rownames(fd) <- NULL
 	na <- rowSums(is.na(fd)) > 0
 	if (any(na)) {
 		message("missing values for fertilizer type: ", paste(fd$type[na], collapse=", "))
