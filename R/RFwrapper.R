@@ -1,12 +1,75 @@
 
+# this new version of leaner and meaner. It uses all the data instead of sample (why would you?), but only 250 trees (100 is usually enough, 1000 is excessive). However, this leads to small differences with the original and the quefts optimization is very sensitive to that. So currently not being used. 
+
+# Also, predictions could be precomputed for the five con-classes. 
+# The use of the FCY (and the reason for making classes) needs to be evaluated. In the absence of fertilizer use data, using yield data to compute soil fertility seems circular modeling.
+
+
+new_Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
+  
+  # compute CON class
+  class_from_con <- function(x) {
+	cut(x, breaks = c(-Inf, 7.5, 15, 22.5, 30, Inf), right = FALSE, labels = paste0("class", 1:5))
+  }
+    
+  # NOT data
+  sINS <- read.csv("NOT_GIS_CON_2020.csv")
+  sINS$CON <- NULL 
+  
+  # Soil data for farmer's field
+  sISRIC <- readRDS("ISRIC_SoilData_2020.RDS")
+  sISRIC <- sISRIC[sISRIC$lat == lat & sISRIC$long == lon, ]
+  sISRIC$soilN <- sISRIC$soilP <- sISRIC$soilK <- 0
+  sISRIC$CONclass <- class_from_con(FCY)
+
+  #combine to get the same data type and to make factors with shared levels
+  sISRIC <- sISRIC[, names(sINS)] 
+  x <- rbind(sISRIC[1,], sINS)
+  x$ncluster <- as.factor(x$ncluster)
+  x$country <- as.factor(x$country)
+  x$CONclass <- as.factor(x$CONclass)
+  y <- x[1,] # soil to predict to 
+  x <- x[-1, ] # model train data
+
+  Ntrain <- subset(x, select = -c(soilP, soilK))
+  Ptrain <- subset(x, select = -c(soilN, soilK))
+  Ktrain <- subset(x, select = -c(soilN, soilP))
+  
+  ## Random Forest soil N, P, K
+  set.seed(444)
+  RF_N <- randomForest::randomForest(log(soilN) ~ ., Ntrain, ntree = 250)
+  RF_P <- randomForest::randomForest(log(soilP) ~ ., Ptrain, ntree = 250)
+  RF_K <- randomForest::randomForest(log(soilK) ~ ., Ktrain, ntree = 250)
+  
+  ## use the random forest model and get the soil NPK estimates for the whole area
+	out <- data.frame(
+		location = paste(lat, lon, sep = "_"),
+		lat = lat, 	
+		long = lon,
+		soilN = exp(predict(RF_N, y) ),
+		soilP = exp(predict(RF_P, y)),
+		soilK = exp(predict(RF_K, y)),
+		Zone = country,
+		rec_N = 0.5,
+		rec_P = 0.15,
+		rec_K = 0.5,
+		rel_N = 1
+	)
+	out$rel_P = out$soilP / out$soilN
+	out$rel_K = out$soilK / out$soilN
+	out
+}
+
+
+
+
 #' RF model reads the NOT data and add the FCY to train a random forest model and then use the model to predict INS for the user coordinates
 
 # this new version was taken from the file on the test server that was not in github. 
 # I assume that Siya made these changes. The values are somewhat different than with the original 
 # function, but not by much. And this does introduce a number of good improvements.
 Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
-  #require(randomForest)
-  #require(caret)
+  #library(randomForest)
   
   # Helper function to compute CON class
   class_from_con <- function(x) {
@@ -53,7 +116,7 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
   ISRIC_SoilData <- factoring[factoring$use == "Valid",]
   ISRIC_SoilData <- subset(ISRIC_SoilData, select = -c(use))
   
-  ### Data partioning
+  ### Data partioning #RH: what for?
   set.seed(444)
   ind <- sample(2, nrow(GIS_soilINS_modData2), replace = TRUE, prob = c(0.7, 0.3)) ## where conrtol yield is used as a covariate
   trainData <- GIS_soilINS_modData2[ind == 1,]
@@ -70,7 +133,7 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
   ## Coustome control parameter
   #custom <- trainControl(method="repeatedcv", number=10, repeats=5, verboseIter=TRUE)
 #  require(caret)
-  custom <- caret::trainControl(method = "oob", number = 10)
+  #custom <- caret::trainControl(method = "oob", number = 10)
   ##########################################################################
   ## Random Forest soilN:
   ##########################################################################
@@ -115,8 +178,6 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
   ISRIC_SoilData$long <- lon
   ISRIC_SoilData$location <- paste(ISRIC_SoilData$lat, ISRIC_SoilData$long, sep = "_")
   ISRIC_SoilData$Zone <- country
-  ISRIC_SoilData <- ISRIC_SoilData[, c("location", "lat", "long", "soilN", "soilP", "soilK", "Zone", "rec_N", "rec_P", "rec_K", "rel_N", "rel_P", "rel_K")]
-  return(ISRIC_SoilData)
-  
+  ISRIC_SoilData[, c("location", "lat", "long", "soilN", "soilP", "soilK", "Zone", "rec_N", "rec_P", "rec_K", "rel_N", "rel_P", "rel_K")]
 }
 
