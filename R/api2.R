@@ -8,14 +8,8 @@ if (this == "LAPTOP-IVSPBGCA") {
 }
 srcdir <- file.path(akpath, "R")
 
+pks <- c("limSolve", "tidyr", "plyr", "dplyr", "randomForest", "caret", "webshot", "httr", "mailR")
 
-library(limSolve)
-library(tidyr)
-library(plyr)
-library(dplyr)
-library(randomForest)
-library(caret)
-library(webshot)
 
 for (f in grep("api", list.files(srcdir, full=TRUE), invert=TRUE, value=TRUE)) source(f)
 

@@ -22,22 +22,20 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
 #  )
   
   # Prepare GIS data
-  GIS_soilINS_modData2 <- read.csv("NOT_GIS_CON_2020.csv") |>
-    mutate( #across(all_of(numeric_cols), as.numeric),
-           ncluster = as.factor(ncluster),
-           CONclass = class_from_con(CON),
-           country = as.factor(country))
+  GIS_soilINS_modData2 <- read.csv("NOT_GIS_CON_2020.csv")
+  GIS_soilINS_modData2$ncluster = as.factor(GIS_soilINS_modData2$ncluster)
+  GIS_soilINS_modData2$CONclass = class_from_con(GIS_soilINS_modData2$CON)
+  GIS_soilINS_modData2$country = as.factor(GIS_soilINS_modData2$country)
 
   # Prepare point data
-  ISRIC_SoilData <- readRDS("ISRIC_SoilData_2020.RDS") |>
-    dplyr::filter(lat == .env$lat & long == lon) |>
-    dplyr::distinct() |>
-    dplyr::mutate(#across(all_of(numeric_cols), as.numeric),
-           ncluster = as.factor(ncluster),
-           CON = FCY,  # Use a default value
-           CONclass = class_from_con(CON))
-  
-  
+  ISRIC_SoilData <- readRDS("ISRIC_SoilData_2020.RDS")
+  ISRIC_SoilData <- ISRIC_SoilData[ISRIC_SoilData$lat == lat & ISRIC_SoilData$long == lon, ]
+  ISRIC_SoilData <- unique(ISRIC_SoilData) #? needed
+
+  ISRIC_SoilData$ncluster = as.factor(ISRIC_SoilData$ncluster)
+  ISRIC_SoilData$CON = FCY  # Use a default value
+  ISRIC_SoilData$CONclass = class_from_con(ISRIC_SoilData$CON)
+    
   ISRIC_SoilData$soilN <- 0
   ISRIC_SoilData$soilP <- 0
   ISRIC_SoilData$soilK <- 0
@@ -72,24 +70,24 @@ Rfmodel_Wrapper <- function(FCY, country, lat, lon) {
   ## Coustome control parameter
   #custom <- trainControl(method="repeatedcv", number=10, repeats=5, verboseIter=TRUE)
 #  require(caret)
-  custom <- trainControl(method = "oob", number = 10)
+  custom <- caret::trainControl(method = "oob", number = 10)
   ##########################################################################
   ## Random Forest soilN:
   ##########################################################################
   set.seed(444)
-  RF_N1 <- randomForest(log(soilN) ~ ., subset(Ndata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
+  RF_N1 <- randomForest::randomForest(log(soilN) ~ ., subset(Ndata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
   
   ##########################################################################
   ## Random Forest "soilP"
   ##########################################################################
   set.seed(773)
-  RF_P1 <- randomForest(log(soilP) ~ ., subset(Pdata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
+  RF_P1 <- randomForest::randomForest(log(soilP) ~ ., subset(Pdata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
   
   ##########################################################################
   ## Random Forest soilK" R sq. 0.60 if control is used, 0.29 otherwise
   ##########################################################################
   set.seed(773)
-  RF_K1 <- randomForest(log(soilK) ~ ., subset(Kdata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
+  RF_K1 <- randomForest::randomForest(log(soilK) ~ ., subset(Kdata_Train, select = -c(CON)), importance = TRUE, ntree = 1000)
   
   ##########################################################################
   ## use the random forest model and get the soil NPK estimates for the whole area

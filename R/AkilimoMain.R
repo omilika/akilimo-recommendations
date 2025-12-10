@@ -85,16 +85,13 @@ run_akilimo <- function(json) {
     userField <- process_json_value("userField", body)
     riskAtt <- process_json_value("riskAtt", body, default_value = 0)
 
-
+    if (country == "BI") {
+		country <- "BU" #use non standard country code for Burundi
+    }
 
     #now call the funtion to do the computations
-    message(paste("Starting plumbR version 4 script processing ---", country))
-	message(paste("Planting dated PD and HD", PD, HD))
-
+	message(paste0("Country: ", country, ", Planting: ", PD, ", Harvesting: ", HD))
     #riskAtt <- 0
-    if (country == "BI") {
-      country <- "BU" #use non standard counttry code for Burundi
-    }
 
     ##call the fertilizerFunc in the AkilimoFunctions file
     #fertilizers <- get_fertilizers(body, country)

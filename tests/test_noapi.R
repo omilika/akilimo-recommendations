@@ -10,16 +10,7 @@ setwd(akpath)
 srcdir <- file.path(akpath, "R")
 testdir <- file.path(akpath, "tests")
 
-library(limSolve)
-library(tidyr)
-library(plyr)
-library(dplyr)
-library(randomForest)
-library(caret)
-
-
 for (f in grep("api", list.files(srcdir), invert=TRUE, value=TRUE)) source(file.path(srcdir, f))
-
 
 test <- function(i) {
 	cat("---+ ", i, " +---\n"); flush.console()

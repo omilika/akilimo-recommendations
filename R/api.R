@@ -1,28 +1,15 @@
 #!/usr/bin/Rscript --vanilla
 
-#require(methods)
-#library(raster)
-#library(dismo)
-library(randomForest)
-library(caret)
-#library(rgdal)
-library(parallel)
-library(foreach)
-library(limSolve)
-library(httr)
-library(tidyr)
-library(plyr)
-library(limSolve)
-library(leaflet)
-library(mapview)
-library(flexdashboard)
-library(lubridate)
-library(plumber)
-library(grid)
-library(mailR)
+pks <- c("plumber", "limSolve", "tidyr", "plyr", "dplyr", "randomForest", "caret", "webshot", "httr", "mailR")
+
+#library(leaflet)
+#library(mapview)
+#library(flexdashboard)
+#library(lubridate)
+#library(grid)
 #library(rJava)
-#library(renv)
-library(dplyr)
+
+library(plumber)
 
 #renv::init()
 

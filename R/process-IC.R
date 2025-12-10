@@ -13,7 +13,7 @@ getICrecommendations <- function(areaHa = 1,
                                  fertilizers,
                                  riskAtt = c(0, 1, 2)) {
 
-  if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
+ # if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
 
   #calculating expected yield increase from fertilizer
   maizeY <- data.frame(CMP = 1:5, dY = c(0, 6500, 4000, 2500, 0))
@@ -37,7 +37,7 @@ getICrecommendations <- function(areaHa = 1,
     Cost <- fertilizers$price
 
     #calculating fertilizer recommendation and total cost of fertilizer
-    FRATE <- linp(E, F, G, H, Cost)$X
+    FRATE <- limSolve::linp(E, F, G, H, Cost)$X
     FRATE[FRATE < 25] <- 0 #dropping all rates less than 25 kg/ha
     FRATE <- FRATE * areaHa #adjusting to field area
 

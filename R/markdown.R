@@ -249,7 +249,7 @@ getFRrecomMarkdown <- function(lat, lon, PD, HD, maxInv, fertilizers, GPS_fertRe
   GPS_fertRecom2 <- suppressWarnings(data.frame(lapply(GPS_fertRecom, function(x) as.numeric(as.character(x)))))
   fertilizer <- fertilizers[fertilizers$type %in% colnames(GPS_fertRecom),]
   onlyFert <- subset(GPS_fertRecom, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
-  onlyFert <- gather(onlyFert, type, amountKg)
+  onlyFert <- tidyr::gather(onlyFert, type, amountKg)
   fertilizer_amount <- merge(fertilizer, onlyFert, by = "type")
   fertilizer_amount$cost <- fertilizer_amount$price * 50
   fertilizer_amount$Nrbags25 <- signif(fertilizer_amount$amountKg / 25, digits = 0) ##
@@ -617,7 +617,7 @@ getCISrecommendations <- function(areaHa = 1,
                                   fertilizers,
                                   riskAtt = c(0, 1, 2)) {
 
-  if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
+  #if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
 
   #calculating expected yield increase from fertilizer
   FSY <- 0.7 * FCY #expected yield of a sweet potato monocrop
@@ -637,7 +637,7 @@ getCISrecommendations <- function(areaHa = 1,
     Cost <- fertilizers$price
 
     #calculating fertilizer recommendation and total cost of fertilizer
-    FR <- linp(E, F, G, H, Cost)$X
+    FR <- limSolve::linp(E, F, G, H, Cost)$X
     FR[FR < 25] <- 0 #dropping all rates less than 25 kg/ha
     FR <- FR * areaHa #adjusting to field area
 

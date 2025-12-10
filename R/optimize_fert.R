@@ -65,12 +65,12 @@ run_Optim_NG2 <- function(rootUP, QID, fertilizer, invest, plDate, WLYData, lat,
 
     ## net revenue on the users land size
     GR <- (TY_user - CY_user) * rootUP                      # Gross revenue given root up is for fresh wt ton/ha
-    TC <- round_any(TC, 100)
-    GR <- round_any(GR, 100)
+    TC <- round(TC, -2)
+    GR <- round(GR, -2)
 
     NR <- round(GR - TC, digits = 0)                                                # Net Revenue
 
-    Recomfr_wide <- spread(Recomfr[, c('type', 'FR')], type, FR)
+    Recomfr_wide <- tidyr::spread(Recomfr[, c('type', 'FR')], type, FR)
 
     d1 <- data.frame(lat = lat, lon = lon, plDate, N = NPK_user[1], P = NPK_user[2], K = NPK_user[3],
                      WLY = WLY_user, CurrentY = CY_user, TargetY = TY_user, TC = TC, NR = NR)
@@ -140,7 +140,7 @@ Rerun_25kgKa_try <- function(rootUP, rdd, fertilizer, QID, onlyFert, country, WL
   QID$water_limited_yield <- WLY
   fertilizer <- merge(fertilizer, onlyFert, by = 'type')
   TC <- (sum(fertilizer$price %*% fertilizer$rate)) * areaHa
-  TC <- round_any(TC, 100)
+  TC <- round(TC, -2)
   N <- as.vector(fertilizer$rate %*% fertilizer$N_cont)
   P <- as.vector(fertilizer$rate %*% fertilizer$P_cont)
   K <- as.vector(fertilizer$rate %*% fertilizer$K_cont)
@@ -159,7 +159,7 @@ Rerun_25kgKa_try <- function(rootUP, rdd, fertilizer, QID, onlyFert, country, WL
   rdd$TargetY <- TY_user
   rdd$TC <- TC
   nr <- (rdd$TargetY - rdd$CurrentY) * rootUP
-  nr <- round_any(nr, 100)
+  nr <- round(nr, -2)
   rdd$NR <- nr - rdd$TC
   rdd$N <- NPK_user[1]
   rdd$P <- NPK_user[2]

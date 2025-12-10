@@ -79,7 +79,7 @@ getFRrecText <- function(ds, country, fertilizers, rootUP) {
       sum_total <- sum(fertilizers_recom$cost)
       totalSalePrice <- round(ds$rec$TC + ds$rec$NR, digits = 0)
       revenue = totalSalePrice - sum_total
-      revenue <- round_any(revenue, 100)
+      revenue <- round(revenue, -2)
 
       fertilizers <- droplevels(fertilizers[fertilizers$type %in% frate$type,])
       TC <- formatC(round(sum_total, digits = 0), format = "f", big.mark = ",", digits = 0)
@@ -317,7 +317,7 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
 
       ## 4. remove ferilizer application < 25 kg/ha and re run the TY and NR calculation
       RecomperHa <- onlyFert / areaHa
-      RecomperHa2 <- gather(RecomperHa, type, rate)
+      RecomperHa2 <- tidyr::gather(RecomperHa, type, rate)
       onlyFert2 <- droplevels(RecomperHa2[RecomperHa2$rate > 25,])
 
       if (nrow(onlyFert2) == 0) { ## if all fertilizer recom < 25 kg/ha all will be set to 0
@@ -330,11 +330,11 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
         GPS_fertRecom <- NRabove18Cost(ds = Reset_fert_Cont, riskAtt = riskAtt)
         rec <- subset(GPS_fertRecom, select = c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
         frates <- subset(GPS_fertRecom, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
-        frates2 <- gather(frates, type, rate)
+        frates2 <- tidyr::gather(frates, type, rate)
         return(list(rec = rec, fertilizer_rates = frates2))
 
       }else {
-        fert25 <- spread(onlyFert2, type, rate) ## when some fertilizer recom are dropped b/c < 25 kg/ha, ty and NR should be recalculated
+        fert25 <- tidyr::spread(onlyFert2, type, rate) ## when some fertilizer recom are dropped b/c < 25 kg/ha, ty and NR should be recalculated
         fert_optim2 <- cbind(fertinfo, fert25)
         fertilizer <- fertilizers[fertilizers$type %in% onlyFert2$type,]
         Reset_fert_Cont <- Rerun_25kgKa_try(rootUP = rootUP, rdd = fert_optim2, fertilizer = fertilizer, QID = SoilData, onlyFert = onlyFert2,
@@ -347,7 +347,7 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
           GPS_fertRecom <- NRabove18Cost(ds = Reset_fert_Cont, riskAtt = riskAtt)
           rec <- subset(GPS_fertRecom, select = c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
           frates <- subset(GPS_fertRecom, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
-          frates2 <- gather(frates, type, rate)
+          frates2 <- tidyr::gather(frates, type, rate)
           return(list(rec = rec, fertilizer_rates = frates2))
 
         }
