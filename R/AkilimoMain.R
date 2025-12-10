@@ -34,28 +34,7 @@ run_akilimo <- function(json) {
 
     PD_window <- process_json_value("PD_window", body, default_value = 0)
     HD_window <- process_json_value("HD_window", body, default_value = 0)
-    fallowType <- process_json_value("fallowType", body, default_value = "none")
-    fallowHeight <- process_json_value("fallowHeight", body, default_value = NA)
-    fallowGreen <- process_json_value("fallowGreen", body, default_value = FALSE)
-    problemWeeds <- process_json_value("problemWeeds", body, default_value = FALSE)
-    tractor_plough <- process_json_value("tractor_plough", body, default_value = FALSE)
-    tractor_harrow <- process_json_value("tractor_harrow", body, default_value = FALSE)
-    tractor_ridger <- process_json_value("tractor_ridger", body, default_value = FALSE)
-    cost_LMO_areaBasis <- process_json_value("cost_LMO_areaBasis", body, default_value = "areaUnit")
-    cost_tractor_ploughing <- process_json_value("cost_tractor_ploughing", body, default_value = NA)
-    cost_tractor_harrowing <- process_json_value("cost_tractor_harrowing", body, default_value = NA)
-    cost_tractor_ridging <- process_json_value("cost_tractor_ridging", body, default_value = NA)
-    cost_manual_ploughing <- process_json_value("cost_manual_ploughing", body, default_value = NA)
-    cost_manual_harrowing <- process_json_value("cost_manual_harrowing", body, default_value = NA)
-    cost_manual_ridging <- process_json_value("cost_manual_ridging", body, default_value = NA)
-    cost_weeding1 <- process_json_value("cost_weeding1", body, default_value = NA)
-    cost_weeding2 <- process_json_value("cost_weeding2", body, default_value = NA)
-    ploughing <- process_json_value("ploughing", body, default_value = FALSE)
-    harrowing <- process_json_value("harrowing", body, default_value = FALSE)
-    ridging <- process_json_value("ridging", body, default_value = FALSE)
-    method_ploughing <- process_json_value("method_ploughing", body)
-    method_harrowing <- process_json_value("method_harrowing", body)
-    method_ridging <- process_json_value("method_ridging", body)
+	cost_LMO_areaBasis <- process_json_value("cost_LMO_areaBasis", body, default_value = "areaUnit")
     FCY <- process_json_value("FCY", body)
     CMP <- process_json_value("CMP", body)
     saleSF <- process_json_value("saleSF", body, default_value = FALSE)
@@ -98,28 +77,10 @@ run_akilimo <- function(json) {
 	# use new function instead
     fertilizers <- get_fertilizers2(body, country)
 
-    message("fertilizers done")
-
-    if (method_ploughing == "NA") method_ploughing <- "N/A"
-    if (method_ridging == "NA") method_ridging <- "N/A"
-
 
     if (sweetPotatoUW == 0) sweetPotatoUW <- 1000 ## if it is not given default is a ton
-
-    if (cost_manual_ploughing == 0) cost_manual_ploughing <- NA
-    if (cost_manual_harrowing == 0) cost_manual_harrowing <- NA
-
-
-    if (cost_manual_ridging == 0) cost_manual_ridging <- NA
-    if (cost_tractor_ploughing == 0) cost_tractor_ploughing <- NA
-    if (cost_tractor_harrowing == 0) cost_tractor_harrowing <- NA
-    if (cost_tractor_ridging == 0) cost_tractor_ridging <- NA
-
-    if (cost_weeding1 == 0) cost_weeding1 <- NA
-    if (cost_weeding2 == 0) cost_weeding2 <- NA
     if (maizeUW == 0) maizeUW <- NA
     if (maxInv == 0) maxInv <- NA
-    if (fallowHeight == 0) fallowHeight <- NA
 
     PD <- as.Date(PD, format = "%Y-%m-%d")
     HD <- as.Date(HD, format = "%Y-%m-%d")
@@ -222,12 +183,7 @@ run_akilimo <- function(json) {
     tuberUP <- sweetPotatoUP / sweetPotatoUW / conversion_factor * 1000
 
     # Define unit conversion factors to hectares
-    unit_factors <- c(
-      ha = 1,
-      acre = 2.47105,
-      are = 100,
-      m2 = 10000
-    )
+    unit_factors <- c(ha=1, acre=2.47105, are=100, m2=10000)
 
     # Fallback to 10000 (i.e., square meters) if unit is unknown or missing
     conversion_factor <- unit_factors[[areaUnits]]
@@ -237,69 +193,9 @@ run_akilimo <- function(json) {
     areaHa <- area / conversion_factor
 
     # Determine area basis for cost calculation
-    area_basis <- switch(
-      cost_LMO_areaBasis,
-      "areaField" = areaHa,
-      "acre" = 0.404686,
-      "ha" = 1,
-      0.0001  # fallback default (likely m²)
-    )
-
-    # create dataframe with cost of land management operations
-    costLMO <- data.frame(operation = c(rep(c("ploughing", "harrowing", "ridging"), 2), "weeding1", "weeding2"),
-                          method = c(rep("manual", 3), rep("tractor", 3), NA, NA),
-                          cost = c(cost_manual_ploughing, cost_manual_harrowing, cost_manual_ridging, cost_tractor_ploughing, cost_tractor_harrowing, cost_tractor_ridging, cost_weeding1, cost_weeding2),
-                          area = area_basis)
-
-    costLMO_MD <- costLMO
-    costLMO$costHa <- costLMO$cost / costLMO$area
-    costLMO <- subset(costLMO, select = -c(area, cost))
-
-
-    # add default values for LMO operations if missing
-    if (country == "NG") {
-      if (is.na(cost_manual_ploughing))                   costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 17000 * 2.47105
-      if (is.na(cost_manual_harrowing))                   costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 15000 * 2.47105
-      if (is.na(cost_manual_ridging))                     costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 12000 * 2.47105
-      if (is.na(cost_tractor_ploughing) & tractor_plough) costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
-      if (is.na(cost_tractor_harrowing) & tractor_harrow) costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
-      if (is.na(cost_tractor_ridging) & tractor_ridger) costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
-      if (is.na(cost_weeding1))                           costLMO[costLMO$operation == "weeding1",]$costHa <- 30000 * 2.47105
-      if (is.na(cost_weeding2))                           costLMO[costLMO$operation == "weeding2",]$costHa <- 30000 * 2.47105
-
-    }else if (country == "TZ") {
-      if (is.na(cost_manual_ploughing))                   costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 175000 * 2.47105
-      if (is.na(cost_manual_harrowing))                   costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 150000 * 2.47105
-      if (is.na(cost_manual_ridging))                     costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 225000 * 2.47105
-      if (is.na(cost_tractor_ploughing) & tractor_plough) costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 150000 * 2.47105
-      if (is.na(cost_tractor_harrowing) & tractor_harrow) costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 100000 * 2.47105
-      if (is.na(cost_tractor_ridging) & tractor_ridger) costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 115000 * 2.47105
-      if (is.na(cost_weeding1))                           costLMO[costLMO$operation == "weeding1",]$costHa <- 60000 * 2.47105
-      if (is.na(cost_weeding2))                           costLMO[costLMO$operation == "weeding2",]$costHa <- 45000 * 2.47105
-
-
-    }
-
-
-    if (!is.na(cost_manual_ploughing) |
-      !is.na(cost_manual_harrowing) |
-      !is.na(cost_manual_ridging) |
-      !is.na(cost_tractor_ploughing) |
-      !is.na(cost_tractor_harrowing) |
-      !is.na(cost_tractor_ridging) |
-      !is.na(cost_weeding1) |
-      !is.na(cost_weeding2)) {
-      costLMO_MD$area <- paste(costLMO_MD$area, areaUnits, sep = "")
-      write.csv(costLMO_MD, "costLMO.csv", row.names = FALSE)
-    }else {
-      costLMO_MD <- costLMO
-      names(costLMO_MD) <- c("operation", "method", "cost")
-      costLMO_MD$area <- "1ha"
-      costLMO_MD$cost <- formatC(signif(costLMO_MD$cost, digits = 3), format = "f", big.mark = ",", digits = 0)
-      write.csv(costLMO_MD, "costLMO.csv", row.names = FALSE)
-
-    }
-
+    area_basis <- switch(cost_LMO_areaBasis, "areaField" = areaHa, "acre" = 0.404686, "ha" = 1, 
+				0.0001)  # fallback default (likely m²)
+    
 
     ### dates and weeks
     #pd         : Character, Planting date, in format of the ith day of the year (as.numeric(strftime(PD, format = "%j")))
@@ -327,7 +223,6 @@ run_akilimo <- function(json) {
     recText <- list(FR = NULL, PP = NULL, IC = NULL, SP = NULL)
     plumberRes <- list(FR = NULL, PP = NULL, SP = NULL)
 
-
     FRrecom <- NULL
     ICrecom <- NULL
     PPrecom <- FALSE
@@ -342,34 +237,31 @@ run_akilimo <- function(json) {
     }
 
     # Clean the required variables
-    recloc_ng <- clean_data(TRNS$recloc, 1)
-    recloc_tz <- clean_data(TRNS$recloc, 2)
-    recloc_rw <- clean_data(TRNS$recloc, 3)
-
-    frnotrec_ng <- clean_data(TRNS$frnotrec, 1)
-    frnotrec_tz <- clean_data(TRNS$frnotrec, 2)
-    frnotrec_rw <- clean_data(TRNS$frnotrec, 3)
-
-    spinfo_ng <- clean_data(TRNS$spinfo, 1)
-    spinfo_rw <- clean_data(TRNS$spinfo, 3)
-    spinfo_tz <- clean_data(TRNS$spinfo, 2)
-
-    message("Begin processing")
-    # Define countries with the same logic
+    #recloc_ng <- clean_data(TRNS$recloc, 1)
+    #recloc_tz <- clean_data(TRNS$recloc, 2)
+    #recloc_rw <- clean_data(TRNS$recloc, 3)
+    #spinfo_ng <- clean_data(TRNS$spinfo, 1)
+    #spinfo_rw <- clean_data(TRNS$spinfo, 3)
+    #spinfo_tz <- clean_data(TRNS$spinfo, 2)
 
     selected_key <- NULL
 
     if (FR) {
-      resFr <- process_FR(
-        FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootUP, areaHa, country, FCY, riskAtt,
-        userName, userPhoneNr, userField, area, areaUnits, PD, email, userPhoneCC,
-        cassPD, cassUW, recText, plumberRes, frnotrec_ng, frnotrec_tz, frnotrec_rw
-      )
+		frnotrec_ng <- clean_data(TRNS$frnotrec, 1)
+		frnotrec_tz <- clean_data(TRNS$frnotrec, 2)
+		frnotrec_rw <- clean_data(TRNS$frnotrec, 3)
 
-      FRrecom <- resFr$FRrecom
-      recText <- resFr$recText
-      plumberRes <- resFr$plumberRes
-      selected_key <- 'FR'
+
+		resFr <- process_FR(
+			FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootUP, areaHa, country, FCY, riskAtt,
+			userName, userPhoneNr, userField, area, areaUnits, PD, email, userPhoneCC,
+			cassPD, cassUW, recText, plumberRes, frnotrec_ng, frnotrec_tz, frnotrec_rw
+		)
+
+		FRrecom <- resFr$FRrecom
+		recText <- resFr$recText
+		plumberRes <- resFr$plumberRes
+		selected_key <- 'FR'
     }
 
     if (IC) {
@@ -401,6 +293,99 @@ run_akilimo <- function(json) {
     }
 
     if (PP) {
+
+
+		tractor_plough <- process_json_value("tractor_plough", body, default_value = FALSE)
+		tractor_harrow <- process_json_value("tractor_harrow", body, default_value = FALSE)
+		tractor_ridger <- process_json_value("tractor_ridger", body, default_value = FALSE)
+		cost_tractor_ploughing <- process_json_value("cost_tractor_ploughing", body, default_value = NA)
+		cost_tractor_harrowing <- process_json_value("cost_tractor_harrowing", body, default_value = NA)
+		cost_tractor_ridging <- process_json_value("cost_tractor_ridging", body, default_value = NA)
+		cost_manual_ploughing <- process_json_value("cost_manual_ploughing", body, default_value = NA)
+		cost_manual_harrowing <- process_json_value("cost_manual_harrowing", body, default_value = NA)
+		cost_manual_ridging <- process_json_value("cost_manual_ridging", body, default_value = NA)
+		cost_weeding1 <- process_json_value("cost_weeding1", body, default_value = NA)
+		cost_weeding2 <- process_json_value("cost_weeding2", body, default_value = NA)
+		ploughing <- process_json_value("ploughing", body, default_value = FALSE)
+		harrowing <- process_json_value("harrowing", body, default_value = FALSE)
+		ridging <- process_json_value("ridging", body, default_value = FALSE)
+		method_ploughing <- process_json_value("method_ploughing", body)
+		method_harrowing <- process_json_value("method_harrowing", body)
+		method_ridging <- process_json_value("method_ridging", body)
+		if (method_ploughing == "NA") method_ploughing <- "N/A"
+		if (method_ridging == "NA") method_ridging <- "N/A"
+		if (cost_manual_ploughing == 0) cost_manual_ploughing <- NA
+		if (cost_manual_harrowing == 0) cost_manual_harrowing <- NA
+		if (cost_manual_ridging == 0) cost_manual_ridging <- NA
+		if (cost_tractor_ploughing == 0) cost_tractor_ploughing <- NA
+		if (cost_tractor_harrowing == 0) cost_tractor_harrowing <- NA
+		if (cost_tractor_ridging == 0) cost_tractor_ridging <- NA
+
+		if (cost_weeding1 == 0) cost_weeding1 <- NA
+		if (cost_weeding2 == 0) cost_weeding2 <- NA
+		if (fallowHeight == 0) fallowHeight <- NA
+
+
+	
+		# create dataframe with cost of land management operations
+		costLMO <- data.frame(operation = c(rep(c("ploughing", "harrowing", "ridging"), 2), "weeding1", "weeding2"),
+							  method = c(rep("manual", 3), rep("tractor", 3), NA, NA),
+							  cost = c(cost_manual_ploughing, cost_manual_harrowing, cost_manual_ridging, cost_tractor_ploughing, cost_tractor_harrowing, cost_tractor_ridging, cost_weeding1, cost_weeding2),
+							  area = area_basis)
+
+		costLMO_MD <- costLMO
+		costLMO$costHa <- costLMO$cost / costLMO$area
+		costLMO <- subset(costLMO, select = -c(area, cost))
+
+
+		# add default values for LMO operations if missing
+		if (country == "NG") {
+		  if (is.na(cost_manual_ploughing))                   costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 17000 * 2.47105
+		  if (is.na(cost_manual_harrowing))                   costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 15000 * 2.47105
+		  if (is.na(cost_manual_ridging))                     costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 12000 * 2.47105
+		  if (is.na(cost_tractor_ploughing) & tractor_plough) costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
+		  if (is.na(cost_tractor_harrowing) & tractor_harrow) costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
+		  if (is.na(cost_tractor_ridging) & tractor_ridger) costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
+		  if (is.na(cost_weeding1))                           costLMO[costLMO$operation == "weeding1",]$costHa <- 30000 * 2.47105
+		  if (is.na(cost_weeding2))                           costLMO[costLMO$operation == "weeding2",]$costHa <- 30000 * 2.47105
+
+		}else if (country == "TZ") {
+		  if (is.na(cost_manual_ploughing))                   costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 175000 * 2.47105
+		  if (is.na(cost_manual_harrowing))                   costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 150000 * 2.47105
+		  if (is.na(cost_manual_ridging))                     costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 225000 * 2.47105
+		  if (is.na(cost_tractor_ploughing) & tractor_plough) costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 150000 * 2.47105
+		  if (is.na(cost_tractor_harrowing) & tractor_harrow) costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 100000 * 2.47105
+		  if (is.na(cost_tractor_ridging) & tractor_ridger) costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 115000 * 2.47105
+		  if (is.na(cost_weeding1))                           costLMO[costLMO$operation == "weeding1",]$costHa <- 60000 * 2.47105
+		  if (is.na(cost_weeding2))                           costLMO[costLMO$operation == "weeding2",]$costHa <- 45000 * 2.47105
+
+
+		}
+
+
+		if (!is.na(cost_manual_ploughing) |
+		  !is.na(cost_manual_harrowing) |
+		  !is.na(cost_manual_ridging) |
+		  !is.na(cost_tractor_ploughing) |
+		  !is.na(cost_tractor_harrowing) |
+		  !is.na(cost_tractor_ridging) |
+		  !is.na(cost_weeding1) |
+		  !is.na(cost_weeding2)) {
+		  costLMO_MD$area <- paste(costLMO_MD$area, areaUnits, sep = "")
+		  write.csv(costLMO_MD, "costLMO.csv", row.names = FALSE)
+		}else {
+		  costLMO_MD <- costLMO
+		  names(costLMO_MD) <- c("operation", "method", "cost")
+		  costLMO_MD$area <- "1ha"
+		  costLMO_MD$cost <- formatC(signif(costLMO_MD$cost, digits = 3), format = "f", big.mark = ",", digits = 0)
+		  write.csv(costLMO_MD, "costLMO.csv", row.names = FALSE)
+
+		}
+	
+	
+	
+	
+	
       resPP <- process_PP(
         PP = PP, country = country,
         areaHa = areaHa, costLMO = costLMO,
@@ -443,6 +428,12 @@ run_akilimo <- function(json) {
       plumberRes <- resSP$plumberRes
       selected_key <- 'SP'
     }
+
+# for getWMrecommendations 
+#		fallowType <- process_json_value("fallowType", body, default_value = "none")
+#		fallowHeight <- process_json_value("fallowHeight", body, default_value = NA)
+#		fallowGreen <- process_json_value("fallowGreen", body, default_value = FALSE)
+#		problemWeeds <- process_json_value("problemWeeds", body, default_value = FALSE)
 
 
     #=============================================================================
