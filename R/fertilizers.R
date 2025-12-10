@@ -41,21 +41,21 @@ get_fertilizers2 <- function(js, country) {
 	}
 
 	#RH this should go to a file. Alternatively could be computed for NPK
-	fd <- data.frame(
+	content <- data.frame(
 		type = c("urea", "MOP", "DAP", "NPK201010", "NPK151515", "TSP", "NPK171717", "NPK201226", "CAN", "SSP", "FOMIIMBURA", "FOMIBAGARA", "FOMITOTAHAZA", "NPK112221", "NPK251010", "NPK152020", "NPK201216", "NPK23105", "NPK123017"), 
 		N_cont = c(0.46, 0, 0.18, 0.2, 0.15, 0, 0.17, 0.2, 0.27, 0, 0.09, 0.11, 0.21, 0.11, 0.25, 0.15, 0.2, 0.23, 0.12), 
 		P_cont = c(0, 0, 0.2, 0.044, 0.07, 0.2, 0.074, 0.052, 0, 0.15, 0.0968, 0, 0, 0.1, 0.044, 0.088, 0.0520, 0.044, 0.132), 
 		K_cont = c(0, 0.6, 0, 0.083, 0.125, 0, 0.15, 0.216, 0, 0, 0.0332, 0.1826, 0.0664, 0.17, 0.083, 0.166, 0.132, 0.0415, 0.14)
 	)
 
-	#NPK must have be followed by 6 numbers
+	#NPK ought to be followed by 6 numbers
 	#this needs to be fixed upstream
-	fd$type[fd$type == "NPK23105"] <- "NPK231005"
+	#d$type[d$type == "NPK23105"] <- "NPK231005"
 
-	fd_cont <- merge(d, fd, by="type", all.x=TRUE)
+	fd <- merge(d, content, by="type", all.x=TRUE)
 	
-	fd_cont$price <- fd_cont$costPerBag / fd_cont$bagWeight
-	fd_cont$available <- NULL
+	fd$price <- fd$costPerBag / fd$bagWeight
+	fd$available <- NULL
 
 # if (!all(is.na(c(newFert1name, newFert2name, newFert3name, newFert4name, newFert5name)))) {
 
@@ -82,8 +82,8 @@ get_fertilizers2 <- function(js, country) {
 		new
 	}
 
-	fd_new <- get_new(js)
-	fd <- dplyr::bind_rows(fd_cont, fd_new)
+	d_new <- get_new(js)
+	fd <- try(rbind(fd, d_new))
 	rownames(fd) <- NULL
 	na <- rowSums(is.na(fd)) > 0
 	if (any(na)) {
