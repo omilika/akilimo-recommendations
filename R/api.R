@@ -2,16 +2,9 @@
 
 pks <- c("plumber", "limSolve", "tidyr", "plyr", "dplyr", "randomForest", "caret", "webshot", "httr", "mailR")
 
-#library(leaflet)
-#library(mapview)
-#library(flexdashboard)
-#library(lubridate)
-#library(grid)
-#library(rJava)
+# perhaps: leaflet, mapview, flexdashboard, lubridate, grid, rJava
 
 library(plumber)
-
-#renv::init()
 
 os <- .Platform$OS.type
 
@@ -22,9 +15,7 @@ if(os != "windows"){
 
 pandoc <- Sys.getenv("RSTUDIO_PANDOC")
 
-srcdir <- "R"
-ff <- grep("api", list.files("srcdir), invert=TRUE, value=TRUE)
-for (f in ff) source(file.path(srcdir, f))
+for (f in grep("api", list.files("R", full=TRUE), invert=TRUE, value=TRUE)) source(f)
 
 root <- Plumber$new()
 
@@ -49,7 +40,6 @@ cat("Working dir:", getwd(), "\n")
 cat("Available CPU cores:", detectCores(), "\n")
 
 cat("R version:", R.version.string, "\n")
-
 
 root$run(host = "0.0.0.0", port = 80, swagger = FALSE)
 
