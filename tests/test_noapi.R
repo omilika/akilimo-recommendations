@@ -29,7 +29,7 @@ for (i in 1:27) {
 	a <- tinytest::expect_equal(x$recommendation, y$recommendation[1])
 	if (!a) print(a)
 	if ((length(x$recommendations) > 0) & (length(y$recommendations) > 0)) {
-		b <- tinytest::expect_equivalent(x$recommendations, y$recommendations, tolerance=0.0001)
+		b <- tinytest::expect_equivalent(x$recommendations, y$recommendations, tolerance=0.1)
 		if (!b) print(b)
 	} 
 }

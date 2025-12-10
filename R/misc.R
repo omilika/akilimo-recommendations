@@ -1,4 +1,18 @@
 
+# to replace plyr::ddply (and the need for the plyr package)
+dd_ply <- function(X, index, fun, ...) {
+	s <- split(X, X[index])
+	out <- lapply(s, fun, ...)
+	value <- do.call(rbind, out)
+	d <- data.frame(X[index], value)
+	rownames(d) <- NULL
+	d
+	#idx <- X[index]
+	#idx$value <- as.vector(tapply(X=X, INDEX=as.list(idx), FUN=fun, ...))
+	#idx
+}
+
+
 
 #SHORT DEF:   Function to convert root DM yield into root fresh matter yield (RFY)
 #RETURNS:     RFY: root fresh yield in the same units as root DM yield input
@@ -35,43 +49,6 @@ getRDY <- function(HD, RFY, country) {
   RDY <- (RFY * DC) / 100
   return(RDY)
 
-}
-
-
-### see if profit is > (0.18 * total cost) + total cost
-## if not set the recommnedation to zero
-NRabove18Cost <- function(ds, riskAtt) {
-
-  # Minimal required net revenue increase from fertilizer needed (taking into account risk attitude of user)
-  dNRmin <- switch(as.character(riskAtt), "0" = 1.8, "1" = 1, "0.2")
-
-  # Check if the net revenue is below the threshold
-  #print("handling this one again")
-  #print(paste("ds$TC:", class(ds$TC), ", ", ds$TC))
-  #print(paste("dNRmin:", class(dNRmin), ", ", dNRmin))
-  #print("after debuging")
-  # Remove any non-numeric characters before conversion
-  dNRmin <- gsub("[^0-9.-]", "", dNRmin)
-  dNRmin <- as.numeric(dNRmin)
-  if (ds$NR < ds$TC * dNRmin) {
-    fertRecom <- subset(ds, select = c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
-    fertRecom$N <- 0
-    fertRecom$P <- 0
-    fertRecom$K <- 0
-    fertRecom$TC <- 0
-    fertRecom$NR <- 0
-    fertRecom$TargetY <- fertRecom$CurrentY
-
-    # dropped selction harvestData as it is not available in the dataFrame
-    onlyFert <- subset(ds, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
-    onlyFert[] <- 0
-
-    fertRecom <- cbind(fertRecom, onlyFert)
-    ds <- fertRecom
-  }
-
-  row.names(ds) <- NULL
-  return(ds)
 }
 
 

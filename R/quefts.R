@@ -79,15 +79,18 @@ NPK_TargetYield_forOutput <- function(NutrUse_soilNPK, N_rate, P_rate, K_rate) {
   NutrUse_soilNPK$SK <- NutrUse_soilNPK$K_rate + NutrUse_soilNPK$soilK
 
   ## Actual Uptake of nutrients: crop param + nutrient supply
-  tmp <- plyr::ddply(NutrUse_soilNPK, plyr::.(lat, long), actual_uptake_tool)
+#  tmp <- plyr::ddply(NutrUse_soilNPK, plyr::.(lat, long), actual_uptake_tool)
+  tmp <- dd_ply(NutrUse_soilNPK, c("lat", "long"), actual_uptake_tool)
   NutrUse_soilNPK <- merge(NutrUse_soilNPK, tmp, by = c("lat", "long"))
 
   ## max and min yield: actual uptake and crop param. min of N uptake constrianed by availability of P, K and water
-  maxminY <- plyr::ddply(NutrUse_soilNPK, plyr::.(lat, long), max_min_yields_tools)
+#  maxminY <- plyr::ddply(NutrUse_soilNPK, plyr::.(lat, long), max_min_yields_tools)
+  maxminY <- dd_ply(NutrUse_soilNPK, c("lat", "long"), max_min_yields_tools)
   NutrUse_soilNPK <- merge(NutrUse_soilNPK, maxminY, by = c("lat", "long"))
 
   ## final yield: min yield for combined uptake of 2 nutrients assuming the 3rd is not limiting, should be < WLY, and take meanof the six combinations
-  Target_Yield <- plyr::ddply(NutrUse_soilNPK, plyr::.(lat, long), quefts_tools)
+#  Target_Yield <- plyr::ddply(NutrUse_soilNPK, plyr::.(lat, long), quefts_tools)
+  Target_Yield <- dd_ply(NutrUse_soilNPK, c("lat", "long"), quefts_tools)
   TY <- data.frame(lat = Target_Yield$lat, lon = Target_Yield$long, TargetYield = Target_Yield$FinalYield)
 
   return(TY)
@@ -224,7 +227,9 @@ quefts_tools <- function(supply_wly) {
 #'
 #' @author Meklit
 #' @export
-QUEFTS_WLY_CY <- function(SoilData = SoilData, country = country, wlyd = wlyd) {
+
+
+QUEFTS_WLY_CY <- function(SoilData, country, wlyd) {
   #wly_plDate <- wly_data[wly_data$plantingDate == pl_Date, c("lat", "long", "wly_KgHa")]
   wlyd$long <- wlyd$lon
   wly_plDate <- wlyd[, c("lat", "long", "water_limited_yield")]
@@ -245,10 +250,17 @@ QUEFTS_WLY_CY <- function(SoilData = SoilData, country = country, wlyd = wlyd) {
 
 
   ## 2. Current yield:
-  actualUptake <- merge(supply, plyr::ddply(supply, plyr::.(lat, long), actual_uptake_tool), by = c("lat", "long"))
-  minmax_Yield <- merge(actualUptake, plyr::ddply(actualUptake, plyr::.(lat, long), max_min_yields_tools), by = c("lat", "long"))
-  Current_Yield <- plyr::ddply(minmax_Yield, plyr::.(lat, long), final_yield_tools) ## yield at zero input
-  colnames(Current_Yield) <- c("lat", "long", "CurrentYield")
+#  actualUptake <- merge(supply, plyr::ddply(supply, plyr::.(lat, long), actual_uptake_tool), by = c("lat", "long"))
+#  minmax_Yield <- merge(actualUptake, plyr::ddply(actualUptake, plyr::.(lat, long), max_min_yields_tools), by = c("lat", "long"))
+#  Current_Yield <- plyr::ddply(minmax_Yield, plyr::.(lat, long), final_yield_tools) ## yield at zero input
+
+## I suspect that merge can be replaced with cbind, as lat/longs are unique 
+## or even better, it seems that supply always has one row
+  actualUptake <- merge(supply, dd_ply(supply, c("lat", "long"), actual_uptake_tool), by = c("lat", "long"))
+  minmax_Yield <- merge(actualUptake, dd_ply(actualUptake, c("lat", "long"), max_min_yields_tools), by = c("lat", "long"))
+  Current_Yield <- dd_ply(minmax_Yield, c("lat", "long"), final_yield_tools) ## yield at zero input
+
+  colnames(Current_Yield)[3] <- "CurrentYield"
   Yield_Fertilizer <- merge(wly_plDate, Current_Yield, by = c("lat", "long"))
   Yield_Fertilizer$CurrentYield <- ifelse(Yield_Fertilizer$CurrentYield > Yield_Fertilizer$water_limited_yield,
                                           as.character(as.numeric(Yield_Fertilizer$water_limited_yield)), as.numeric(Yield_Fertilizer$CurrentYield))
