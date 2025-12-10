@@ -144,6 +144,44 @@ getFRrecText <- function(ds, country, fertilizers, rootUP) {
 
 
 
+### see if profit is > (0.18 * total cost) + total cost
+## if not set the recommnedation to zero
+NRabove18Cost <- function(ds, riskAtt) {
+
+  # Minimal required net revenue increase from fertilizer needed (taking into account risk attitude of user)
+  dNRmin <- switch(as.character(riskAtt), "0" = 1.8, "1" = 1, "0.2")
+
+  # Check if the net revenue is below the threshold
+  #print("handling this one again")
+  #print(paste("ds$TC:", class(ds$TC), ", ", ds$TC))
+  #print(paste("dNRmin:", class(dNRmin), ", ", dNRmin))
+  #print("after debuging")
+  # Remove any non-numeric characters before conversion
+  dNRmin <- gsub("[^0-9.-]", "", dNRmin)
+  dNRmin <- as.numeric(dNRmin)
+  if (ds$NR < ds$TC * dNRmin) {
+    fertRecom <- subset(ds, select = c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
+    fertRecom$N <- 0
+    fertRecom$P <- 0
+    fertRecom$K <- 0
+    fertRecom$TC <- 0
+    fertRecom$NR <- 0
+    fertRecom$TargetY <- fertRecom$CurrentY
+
+    # dropped selction harvestData as it is not available in the dataFrame
+    onlyFert <- subset(ds, select = -c(lat, lon, plDate, N, P, K, WLY, CurrentY, TargetY, TC, NR))
+    onlyFert[] <- 0
+
+    fertRecom <- cbind(fertRecom, onlyFert)
+    ds <- fertRecom
+  }
+
+  row.names(ds) <- NULL
+  return(ds)
+}
+
+
+
 #######################################################################
 ## FR
 #######################################################################
@@ -215,13 +253,13 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
       country == "GH" |
       country == "BU") {
       return("We do not have fertilizer recommendation for your location because your location is out of the recommendation domain AKILIMO is currently serving.")
-    }else if (country == "RW") {
+    } else if (country == "RW") {
       return("kinyarwanda here")
-    }else {
+    } else {
       return("Hatuna mapendekezo yoyote  kwa eneo lako kwa sababu eneo lako liko nje la eneo ambalo AKILIMO linafanya kazi kwa sasa")
     }
 
-  }else {
+  } else {
 
     wlydata <- wlypd[, c("lat", "long", "pl_Date", "location")]
     colnames(wlydata) <- c("lat", "lon", "pl_Date", "location")
@@ -235,7 +273,7 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
     #SoilData <- Rfmodel_Wrapper(ISRIC_SoilData=ISRIC_SoilData_t, FCY=FCY, country=country)
     if (country %in% c("NG", "TZ")) {
       SoilData <- Rfmodel_Wrapper(FCY = FCY, country = country, lat = lat2, lon = lon2)
-    }else if (country == "RW") {
+    } else if (country == "RW") {
       fcyy <- ifelse(FCY < 7.5, "FCY1",
                      ifelse(FCY >= 7.5 & FCY < 15, "FCY2",
                             ifelse(FCY >= 15 & FCY < 22.5, "FCY3",
@@ -252,7 +290,7 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
       SoilData$rel_K <- SoilData$soilK / SoilData$soilN
       SoilData$long <- SoilData$lon
       SoilData <- SoilData[, c("location", "lat", "long", "soilN", "soilP", "soilK", "Zone", "rec_N", "rec_P", "rec_K", "rel_N", "rel_P", "rel_K")]
-    }else if (country == "GH") {
+    } else if (country == "GH") {
       fcyy <- ifelse(FCY < 7.5, "FCY1",
                      ifelse(FCY >= 7.5 & FCY < 15, "FCY2",
                             ifelse(FCY >= 15 & FCY < 22.5, "FCY3",
@@ -269,7 +307,7 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
       SoilData$rel_K <- SoilData$soilK / SoilData$soilN
       SoilData$long <- SoilData$lon
       SoilData <- SoilData[, c("location", "lat", "long", "soilN", "soilP", "soilK", "Zone", "rec_N", "rec_P", "rec_K", "rel_N", "rel_P", "rel_K")]
-    }else if (country == "BU") {
+    } else if (country == "BU") {
       fcyy <- ifelse(FCY < 7.5, "FCY1",
                      ifelse(FCY >= 7.5 & FCY < 15, "FCY2",
                             ifelse(FCY >= 15 & FCY < 22.5, "FCY3",
@@ -374,15 +412,12 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
     FCY = FCY, riskAtt = riskAtt
   )
 
-  message("Finished processing")
-
   if (all(plumberRes$FR == no_recommendation_msg)) {
     if (country %in% no_fr_recommendation_countries) {
       FRrecom <- FALSE
       recText[["FR"]] <- plumberRes$FR
-    }
-  } else {
-    if (plumberRes[["FR"]]$rec$NR > 0) {
+    } # else ? {}
+  } else if (plumberRes[["FR"]]$rec$NR > 0) {
       FRrecom <- TRUE
       recText[["FR"]] <- getFRrecText(
         ds = plumberRes$FR,
@@ -401,7 +436,7 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
       )
 
       fertilizerAdviseTable(FR = TRUE, IC = FALSE, country = country, areaUnits = areaUnits)
-    } else {
+   } else {
       FRrecom <- FALSE
       recText[["FR"]] <- switch(
         country,
@@ -411,7 +446,6 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
         "TZ" = frnotrec_tz,
         "No recommendation available"
       )
-    }
   }
 
   return(list(FRrecom = FRrecom, recText = recText, plumberRes = plumberRes))
