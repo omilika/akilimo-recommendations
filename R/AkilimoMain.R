@@ -9,6 +9,41 @@ process_json_value <- function(field_name, body, default_value = "NA") {
   return(default_value)
 }
 
+
+get_cassUPW <- function(cassUP, cassUW, cassPD, country) {
+	if (cassUP == 0) {
+		if (country == "NG") {
+			  if (cassPD == "roots") { cassUP <- 12000; cassUW <- 1000 }
+			  if (cassPD == "chips") { cassUP <- 36000; cassUW <- 1000 }
+			  if (cassPD == "flour") { cassUP <- 38400; cassUW <- 1000 }
+			  if (cassPD == "gari") { cassUP <- 42000; cassUW <- 1000 }
+		} else if (country == "TZ") {
+			  if (cassPD == "roots") { cassUP <- 180000; cassUW <- 1000 }
+			  if (cassPD == "chips") { cassUP <- 540000; cassUW <- 1000 }
+			  if (cassPD == "flour") { cassUP <- 576000; cassUW <- 1000 }
+			  if (cassPD == "gari") { cassUP <- 630000; cassUW <- 1000 }
+		} else if (country == "GH") {
+			  if (cassPD == "roots") { cassUP <- 450; cassUW <- 1000 }
+			  if (cassPD == "chips") { cassUP <- 450; cassUW <- 1000 }
+			  if (cassPD == "flour") { cassUP <- 450; cassUW <- 1000 }
+			  if (cassPD == "gari") { cassUP <- 450; cassUW <- 1000 }
+		} else if (country == "RW") {
+			  if (cassPD == "roots") { cassUP <- 75000; cassUW <- 1000 }
+			  if (cassPD == "chips") { cassUP <- 75000; cassUW <- 1000 }
+			  if (cassPD == "flour") { cassUP <- 75000; cassUW <- 1000 }
+			  if (cassPD == "gari") { cassUP <- 75000; cassUW <- 1000 }
+		} else if (country == "BU") {
+			  if (cassPD == "roots") { cassUP <- 700000; cassUW <- 1000 }
+			  if (cassPD == "chips") { cassUP <- 700000; cassUW <- 1000 }
+			  if (cassPD == "flour") { cassUP <- 700000; cassUW <- 1000 }
+			  if (cassPD == "gari") { cassUP <- 700000; cassUW <- 1000 }
+		} else {
+			# error
+		}
+	}
+	c(cassUP, cassUW )
+}
+
 run_akilimo <- function(json) {
 
     # Parse JSON body
@@ -28,7 +63,6 @@ run_akilimo <- function(json) {
     PP <- process_json_value("PP", body, default_value = FALSE)
     SPP <- process_json_value("SPP", body, default_value = FALSE)
     SPH <- process_json_value("SPH", body, default_value = FALSE)
-
     PD <- process_json_value("PD", body, default_value = 0)
     HD <- process_json_value("HD", body, default_value = 0)
 
@@ -46,12 +80,6 @@ run_akilimo <- function(json) {
     cassUP_m2 <- process_json_value("cassUP_m2", body)
     cassUP_p1 <- process_json_value("cassUP_p1", body)
     cassUP_p2 <- process_json_value("cassUP_p2", body)
-    sweetPotatoPD <- process_json_value("sweetPotatoPD", body, default_value = "tubers")
-    sweetPotatoUW <- process_json_value("sweetPotatoUW", body, default_value = NA)
-    sweetPotatoUP <- process_json_value("sweetPotatoUP", body, default_value = NA)
-    maizePD <- process_json_value("maizePD", body, default_value = "fresh_cob")
-    maizeUW <- process_json_value("maizeUW", body, default_value = NA)
-    maizeUP <- process_json_value("maizeUP", body)
     maxInv <- process_json_value("maxInv", body, default_value = NA)
 
     SMS <- process_json_value("SMS", body, default_value = FALSE)
@@ -68,18 +96,14 @@ run_akilimo <- function(json) {
 		country <- "BU" #use non standard country code for Burundi
     }
 
-    #now call the funtion to do the computations
 	message(paste0("Country: ", country, ", Planting: ", PD, ", Harvesting: ", HD))
     #riskAtt <- 0
 
-    ##call the fertilizerFunc in the AkilimoFunctions file
     #fertilizers <- get_fertilizers(body, country)
-	# use new function instead
+	# use new function
     fertilizers <- get_fertilizers2(body, country)
 
 
-    if (sweetPotatoUW == 0) sweetPotatoUW <- 1000 ## if it is not given default is a ton
-    if (maizeUW == 0) maizeUW <- NA
     if (maxInv == 0) maxInv <- NA
 
     PD <- as.Date(PD, format = "%Y-%m-%d")
@@ -91,36 +115,14 @@ run_akilimo <- function(json) {
 
 
     if (saleSF) {
-      SF <- read.csv("starchPrices.csv")
-      SF <- SF[SF$starchFactory == nameSF,]
-      cassUP <- max(SF$price)
-      cassUW <- 1000
-    }else {
-      if (cassUP == 0 & cassPD == "roots" & country == "NG") { cassUP <- 12000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "chips" & country == "NG") { cassUP <- 36000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "flour" & country == "NG") { cassUP <- 38400; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "gari" & country == "NG") { cassUP <- 42000; cassUW <- 1000 }
-
-      if (cassUP == 0 & cassPD == "roots" & country == "TZ") { cassUP <- 180000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "chips" & country == "TZ") { cassUP <- 540000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "flour" & country == "TZ") { cassUP <- 576000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "gari" & country == "TZ") { cassUP <- 630000; cassUW <- 1000 }
-
-      if (cassUP == 0 & cassPD == "roots" & country == "GH") { cassUP <- 450; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "chips" & country == "GH") { cassUP <- 450; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "flour" & country == "GH") { cassUP <- 450; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "gari" & country == "GH") { cassUP <- 450; cassUW <- 1000 }
-
-      if (cassUP == 0 & cassPD == "roots" & country == "RW") { cassUP <- 75000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "chips" & country == "RW") { cassUP <- 75000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "flour" & country == "RW") { cassUP <- 75000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "gari" & country == "RW") { cassUP <- 75000; cassUW <- 1000 }
-
-      if (cassUP == 0 & cassPD == "roots" & country == "BU") { cassUP <- 700000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "chips" & country == "BU") { cassUP <- 700000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "flour" & country == "BU") { cassUP <- 700000; cassUW <- 1000 }
-      if (cassUP == 0 & cassPD == "gari" & country == "BU") { cassUP <- 700000; cassUW <- 1000 }
-
+		SF <- read.csv("starchPrices.csv")
+		SF <- SF[SF$starchFactory == nameSF,]
+		cassUP <- max(SF$price)
+		cassUW <- 1000
+    } else {
+		UPW <- get_cassUPW(cassUP, cassUW, cassPD, country)
+		cassUP <- UPW[1]
+		cassUW <- UPW[2]		
     }
 
     # Extract conversion factor once
@@ -136,52 +138,6 @@ run_akilimo <- function(json) {
     rootUP_p1 <- cassUP_p1 / denominator
     rootUP_p2 <- cassUP_p2 / denominator
 
-    # Set default price and weight if maizeUP is zero
-    if (maizeUP == 0) {
-      if (maizePD == "fresh_cob") {
-        maizeUP <- 50    # Default price for 1 large fresh cob
-        maizeUW <- 1
-      } else if (maizePD == "grain") {
-        maizeUP <- 230   # Default price for 1 kg of maize grain
-        maizeUW <- 1
-      }
-    }
-
-    # Ensure maizeUW is numeric if using grain
-    if (maizePD == "grain") {
-      maizeUW <- as.numeric(as.character(maizeUW))
-    }
-
-    # Calculate cobUP
-    cobUP <- if (maizePD == "fresh_cob") {
-      maizeUP
-    } else {
-      maizeUP / maizeUW / 7.64  # 1 kg of grain ~ 7.64 cobs
-    }
-
-    # Conversion factors for sweetPotato products
-    tuberConv <- data.frame(
-      sweetPotatoPD = c("tubers", "flour"),
-      conversion = c(1, 3.2)
-    )
-
-    # Set default price and weight for Tanzania if price is missing
-    if (sweetPotatoUP == 0 && country == "TZ") {
-      if (sweetPotatoPD == "tubers") {
-        sweetPotatoUP <- 120000
-        sweetPotatoUW <- 1000
-      } else if (sweetPotatoPD == "flour") {
-        sweetPotatoUP <- 384000
-        sweetPotatoUW <- 1000
-      }
-    }
-
-    # Get the conversion factor
-    conversion_factor <- tuberConv[tuberConv$sweetPotatoPD == sweetPotatoPD, "conversion"]
-
-    # Compute tuberUP
-    tuberUP <- sweetPotatoUP / sweetPotatoUW / conversion_factor * 1000
-
     # Define unit conversion factors to hectares
     unit_factors <- c(ha=1, acre=2.47105, are=100, m2=10000)
 
@@ -193,8 +149,8 @@ run_akilimo <- function(json) {
     areaHa <- area / conversion_factor
 
     # Determine area basis for cost calculation
-    area_basis <- switch(cost_LMO_areaBasis, "areaField" = areaHa, "acre" = 0.404686, "ha" = 1, 
-				0.0001)  # fallback default (likely m²)
+    area_basis <- switch(cost_LMO_areaBasis, "areaField" = areaHa, 
+			"acre" = 0.404686, "ha" = 1, 0.0001)  # fallback default (likely m²)
     
 
     ### dates and weeks
@@ -264,7 +220,64 @@ run_akilimo <- function(json) {
 		selected_key <- 'FR'
     }
 
+
+
+
+
     if (IC) {
+	
+		sweetPotatoPD <- process_json_value("sweetPotatoPD", body, default_value = "tubers")
+		sweetPotatoUW <- process_json_value("sweetPotatoUW", body, default_value = NA)
+		sweetPotatoUP <- process_json_value("sweetPotatoUP", body, default_value = NA)
+		maizePD <- process_json_value("maizePD", body, default_value = "fresh_cob")
+		maizeUW <- process_json_value("maizeUW", body, default_value = NA)
+		maizeUP <- process_json_value("maizeUP", body)
+		if (sweetPotatoUW == 0) sweetPotatoUW <- 1000 ## if it is not given default is a ton
+		if (maizeUW == 0) maizeUW <- NA
+
+		# Set default price and weight if maizeUP is zero
+		if (maizeUP == 0) {
+		  if (maizePD == "fresh_cob") {
+			maizeUP <- 50    # Default price for 1 large fresh cob
+			maizeUW <- 1
+		  } else if (maizePD == "grain") {
+			maizeUP <- 230   # Default price for 1 kg of maize grain
+			maizeUW <- 1
+		  }
+		}
+
+		# Ensure maizeUW is numeric if using grain
+		if (maizePD == "grain") {
+		  maizeUW <- as.numeric(as.character(maizeUW))
+		}
+
+		# Calculate cobUP
+		cobUP <- ifelse (maizePD == "fresh_cob", maizeUP, maizeUP / maizeUW / 7.64)  # 1 kg of grain ~ 7.64 cobs
+	   
+		# Conversion factors for sweetPotato products
+		tuberConv <- data.frame(
+		  sweetPotatoPD = c("tubers", "flour"), # sweetpotato "tubers"? ouch.
+		  conversion = c(1, 3.2)
+		)
+
+		# Set default price and weight for Tanzania if price is missing
+		if (sweetPotatoUP == 0 && country == "TZ") {
+		  if (sweetPotatoPD == "tubers") {
+			sweetPotatoUP <- 120000
+			sweetPotatoUW <- 1000
+		  } else if (sweetPotatoPD == "flour") {
+			sweetPotatoUP <- 384000
+			sweetPotatoUW <- 1000
+		  }
+		}
+
+		# Get the conversion factor
+		conversion_factor <- tuberConv[tuberConv$sweetPotatoPD == sweetPotatoPD, "conversion"]
+
+		# Compute tuberUP
+		tuberUP <- sweetPotatoUP / sweetPotatoUW / conversion_factor * 1000
+
+		
       if (country == "NG") {
         resIC <- process_IC_NG(
           IC = IC, country = country, areaHa = areaHa, CMP = CMP, cobUP = cobUP, fertilizers = fertilizers,
