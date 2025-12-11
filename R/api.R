@@ -1,30 +1,10 @@
 #!/usr/bin/Rscript --vanilla
 
-#require(methods)
-#library(raster)
-#library(dismo)
-library(randomForest)
-library(caret)
-#library(rgdal)
-library(parallel)
-library(foreach)
-library(limSolve)
-library(httr)
-library(tidyr)
-library(plyr)
-library(limSolve)
-library(leaflet)
-library(mapview)
-library(flexdashboard)
-library(lubridate)
-library(plumber)
-library(grid)
-library(mailR)
-#library(rJava)
-#library(renv)
-library(dplyr)
+pks <- c("plumber", "limSolve", "tidyr", "randomForest", "webshot", "httr", "mailR")
 
-#renv::init()
+# perhaps: leaflet, mapview, flexdashboard, lubridate, grid, rJava
+
+library(plumber)
 
 os <- .Platform$OS.type
 
@@ -35,8 +15,7 @@ if(os != "windows"){
 
 pandoc <- Sys.getenv("RSTUDIO_PANDOC")
 
-ff <- grep("api", list.files(srcdir), invert=TRUE, value=TRUE)
-for (f in ff) source(file.path(srcdir, f))
+for (f in grep("api", list.files("R", full=TRUE), invert=TRUE, value=TRUE)) source(f)
 
 root <- Plumber$new()
 
@@ -61,7 +40,6 @@ cat("Working dir:", getwd(), "\n")
 cat("Available CPU cores:", detectCores(), "\n")
 
 cat("R version:", R.version.string, "\n")
-
 
 root$run(host = "0.0.0.0", port = 80, swagger = FALSE)
 
