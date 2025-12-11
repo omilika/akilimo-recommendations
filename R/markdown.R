@@ -239,8 +239,11 @@ fertilizerAdviseTable <- function(FR, IC, country, areaUnits) {
 #'  @param rootUP: a price of 1 tonne of cassava in freshwt. It is used as freshwt price, after QUEFTS give drywt root yield (kg/ha) it is converted to freshwt in tonne/ha and this price is then used
 #'  @param areaHa is area of land in ha
 #'  @return a data frame with ...
+
+## never reached?
+
 getFRrecomMarkdown <- function(lat, lon, PD, HD, maxInv, fertilizers, GPS_fertRecom,
-                               area, areaUnits, userName, userPhoneCC = NA, userPhoneNr = NA, cassPD, userField, userEmail, cassUP) {
+                               area, areaUnits, user, cassPD, userField, cassUP) {
 
   is.even <- function(x) x %% 2 == 0
   rootConv <- data.frame(cassPD = c("roots", "chips", "flour", "gari"),
@@ -270,7 +273,7 @@ getFRrecomMarkdown <- function(lat, lon, PD, HD, maxInv, fertilizers, GPS_fertRe
     }
   }
 
-  phone <- paste(userPhoneCC, userPhoneNr, sep = "")
+  phone <- paste(user$PhoneCC, user$PhoneNr, sep = "")
   field_area <- paste(area, areaUnits, sep = " ")
   sum_total <- round(sum(fertilizer_amount$total_cost), digits = 0)
   unitcassava <- paste(cassUW, "kg bag of ", cassPD, sep = "")
@@ -286,18 +289,17 @@ getFRrecomMarkdown <- function(lat, lon, PD, HD, maxInv, fertilizers, GPS_fertRe
   current_yield <- paste(round(GPS_fertRecom2$CurrentY, digits = 0), " tonnes per ", field_area, sep = "")
 
 
-  T_csv <- data.frame(name = userName, phone = phone, field = userField, field_area = field_area, unit_field = areaUnits,
-                      plant_date = PD, hvst_date = HD, product,
-                      current_yield,
-                      email = userEmail, latitude = lat, longitude = lon,
-                      costcassava = cassUP, unitcassava = unitcassava, maxinvest = maxInv,
-                      sum_total, bags_total = bags_totalroot, unit = "Kg", totalSalePrice = totalSalePrice, revenue)
+  T_csv <- data.frame(name = user$Name, phone = phone, field = userField, field_area = field_area, 
+		unit_field = areaUnits, plant_date = PD, hvst_date = HD, product,
+        current_yield, email = user$Email, latitude = lat, longitude = lon,
+        costcassava = cassUP, unitcassava = unitcassava, maxinvest = maxInv,
+        sum_total, bags_total = bags_totalroot, unit = "Kg", totalSalePrice = totalSalePrice, revenue)
 
   T_csv <- cbind(T_csv, FA)
 
   fnc <- "MarkDownTextD.csv"
   if (file.exists(fnc)) file.remove(fnc)
-  write.csv(T_csv, "MarkDownTextD.csv", row.names = FALSE)
+  write.csv(T_csv, fnc, row.names = FALSE)
 
 
   fText <- c()
@@ -317,8 +319,8 @@ getFRrecomMarkdown <- function(lat, lon, PD, HD, maxInv, fertilizers, GPS_fertRe
 
 
 ## process the recom output as Markdown input
-FR_MarkdownText <- function(rr, fertilizers, userName, country, userPhoneNr, userField, area, areaUnits, PD, HD, email, lat, lon,
-                            rootUP, cassPD, cassUW, maxInv, userPhoneCC) {
+FR_MarkdownText <- function(rr, fertilizers, user, country, userField,
+			area, areaUnits, PD, HD, lat, lon, rootUP, cassPD, cassUW, maxInv) {
   #
   bags_total = round(rr$rec$TargetY, digits = 1)
   totalSalePrice = rr$rec$TC + rr$rec$NR
@@ -328,17 +330,16 @@ FR_MarkdownText <- function(rr, fertilizers, userName, country, userPhoneNr, use
 
   currency <- ifelse(country == "NG", "NGN", ifelse(country == "RW", "RWF", ifelse(country == "GH", "GHS", ifelse(country == "BU", "BIF", "TZS"))))
 
-  MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
-                              unit_field = areaUnits, plant_date = PD, hvst_date = HD, current_yield = current_yield,
-                              email = email, latitude = lat, longitude = lon, userPhoneCC = userPhoneCC,
-                              costcassava = rootUP, unitcassava = cassPD, maxinvest = maxInv,
-                              sum_total = sum_total, bags_total = bags_total, product = cassPD,
-                              totalSalePrice = totalSalePrice, revenue = revenue, currency = currency, cassUW = cassUW)
+  MarkDownTextD <- data.frame(name = user$Name, country = country, phone = user$PhoneNr, field = userField, 
+		field_area = area, unit_field = areaUnits, plant_date = PD, hvst_date = HD, current_yield = current_yield,    email = user$Email, latitude = lat, longitude = lon, userPhoneCC = user$PhoneCC,
+        costcassava = rootUP, unitcassava = cassPD, maxinvest = maxInv,
+        sum_total = sum_total, bags_total = bags_total, product = cassPD,
+        totalSalePrice = totalSalePrice, revenue = revenue, currency = currency, cassUW = cassUW)
 
   MarkDownTextD$costcassava <- formatC(signif(MarkDownTextD$costcassava, digits = 4), format = "f", big.mark = ",", digits = 0)
   MarkDownTextD$maxinvest <- formatC(signif(MarkDownTextD$maxinvest, digits = 4), format = "f", big.mark = ",", digits = 0)
 
-  filename <- paste("personalized_info", userPhoneNr, sep = "_")
+  filename <- paste("personalized_info", user$PhoneNr, sep = "_")
   filename <- paste0(filename, ".csv")
   write.csv(MarkDownTextD, filename, row.names = FALSE)
 
@@ -385,11 +386,9 @@ FR_MarkdownText <- function(rr, fertilizers, userName, country, userPhoneNr, use
 }
 
 
-IC_MarkdownText <- function(rr, fertilizers, userName, country,
-                            userPhoneNr, userField, area, areaUnits,
-                            PD, HD, email, lat, lon,
-                            rootUP, cassPD, maxInv, userPhoneCC, CMP,
-                            maizeUW, maizePD, cassUW, maizeUP, nameSF, saleSF, riskAtt) {
+IC_MarkdownText <- function(rr, fertilizers, user, country, userField,
+          area, areaUnits, PD, HD, lat, lon, rootUP, cassPD, maxInv, CMP,
+          maizeUW, maizePD, cassUW, maizeUP, nameSF, saleSF, riskAtt) {
 
 
   current_yield = rr$rec$dMP ## this is increase in maize yield
@@ -403,12 +402,14 @@ IC_MarkdownText <- function(rr, fertilizers, userName, country,
   currency <- ifelse(country == "NG", "NGN", ifelse(country == "RW", "RWF", ifelse(country == "GH", "GHS", "TZS")))
 
   message(paste("Processing IC_MarkdownText  with risk attitutde", riskAtt))
-  MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
-                              unit_field = areaUnits, plant_date = PD, hvst_date = HD, userPhoneCC = userPhoneCC,
-                              email = email, latitude = lat, longitude = lon, product = cassPD, costcassava = rootUP, unitcassava = cassPD, maxinvest = maxInv,
-                              currency = currency, maizeUP = maizeUP, maizeUW = maizeUW, maizePD = maizePD,
-                              sum_total = sum_total, cassUW = cassUW, totalSalePrice = totalSalePrice, revenue = revenue, dMP = dMP,
-                              saleSF = saleSF, nameSF = nameSF, CMP = CMP, riskAtt = riskAtt
+  MarkDownTextD <- data.frame(name = user$Name, country = country, phone = user$PhoneNr, 
+		field = userField, field_area = area,
+        unit_field = areaUnits, plant_date = PD, hvst_date = HD, userPhoneCC = user$PhoneCC,
+        email = user$Email, latitude = lat, longitude = lon, product = cassPD, costcassava = rootUP, 
+		unitcassava = cassPD, maxinvest = maxInv,
+        currency = currency, maizeUP = maizeUP, maizeUW = maizeUW, maizePD = maizePD,
+        sum_total = sum_total, cassUW = cassUW, totalSalePrice = totalSalePrice, revenue = revenue, dMP = dMP,
+        saleSF = saleSF, nameSF = nameSF, CMP = CMP, riskAtt = riskAtt
   )
 
   MarkDownTextD$maxinvest <- as.numeric(as.character(MarkDownTextD$maxinvest))
@@ -435,7 +436,7 @@ IC_MarkdownText <- function(rr, fertilizers, userName, country,
                                        " kg of grain.", sep = "")
   }
 
-  filename <- paste("personalized_info", userPhoneNr, sep = "_")
+  filename <- paste("personalized_info", user$PhoneNr, sep = "_")
   filename <- paste0(filename, ".csv")
   write.csv(MarkDownTextD, filename, row.names = FALSE)
 
@@ -480,10 +481,8 @@ IC_MarkdownText <- function(rr, fertilizers, userName, country,
 }
 
 
-CIS_MarkdownText <- function(rr, fertilizers, userName, country,
-                             userPhoneNr, userField, area, areaUnits,
-                             PD, HD, email, lat, lon,
-                             rootUP, cassPD, cassUW, maxInv, userPhoneCC,
+CIS_MarkdownText <- function(rr, fertilizers, user, country, userField, area, areaUnits,
+                             PD, HD, lat, lon, rootUP, cassPD, cassUW, maxInv,
                              sweetPotatoUP, sweetPotatoPD, tuberUP, sweetPotatoUW) {
 
   #current_yield = rr$rec$dMP ## this is increase in maize yield
@@ -495,19 +494,20 @@ CIS_MarkdownText <- function(rr, fertilizers, userName, country,
 
   currency <- ifelse(country == "NG", "NGN", ifelse(country == "RW", "RWF", ifelse(country == "GH", "GHS", "TZS")))
 
-  MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
-                              unit_field = areaUnits, plant_date = PD, hvst_date = HD, userPhoneCC = userPhoneCC,
-                              email = email, latitude = lat, longitude = lon, product = cassPD,
-                              costcassava = rootUP, unitcassava = cassPD, maxinvest = maxInv, currency = currency, sum_total = sum_total,
-                              product = cassPD, totalSalePrice = totalSalePrice, revenue = revenue, currency = currency, cassUW = cassUW,
-                              sweetPotatoUW = sweetPotatoUW, sweetPotatoUP = sweetPotatoUP, sweetPotatoPD = sweetPotatoPD, tuberUP = tuberUP)
+  MarkDownTextD <- data.frame(name = user$Name, country = country, phone = user$PhoneNr, 
+		field = userField, field_area = area,
+		unit_field = areaUnits, plant_date = PD, hvst_date = HD, userPhoneCC = user$PhoneCC,
+        email = user$Email, latitude = lat, longitude = lon, product = cassPD,
+        costcassava = rootUP, unitcassava = cassPD, maxinvest = maxInv, currency = currency, sum_total = sum_total,
+        product = cassPD, totalSalePrice = totalSalePrice, revenue = revenue, currency = currency, cassUW = cassUW,
+        sweetPotatoUW = sweetPotatoUW, sweetPotatoUP = sweetPotatoUP, sweetPotatoPD = sweetPotatoPD, tuberUP = tuberUP)
 
 
   MarkDownTextD$costcassava <- formatC(signif(MarkDownTextD$costcassava, digits = 4), format = "f", big.mark = ",", digits = 0)
   MarkDownTextD$maxinvest <- formatC(signif(MarkDownTextD$maxinvest, digits = 4), format = "f", big.mark = ",", digits = 0)
 
 
-  filename <- paste("personalized_info", userPhoneNr, sep = "_")
+  filename <- paste("personalized_info", user$PhoneNr, sep = "_")
   filename <- paste0(filename, ".csv")
   write.csv(MarkDownTextD, filename, row.names = FALSE)
 
@@ -553,20 +553,17 @@ CIS_MarkdownText <- function(rr, fertilizers, userName, country,
 }
 
 
-PPSP_MarkdownText <- function(rr, fname, userName = userName, country = country,
-                              userPhoneNr = userPhoneNr, userField = userField, area = area, areaUnits = areaUnits,
-                              PD = PD, HD = HD, email = email, lat = lat, lon = lon,
-                              rootUP = rootUP, cassPD = cassPD, cassUW = cassUW, maxInv = maxInv) {
+PPSP_MarkdownText <- function(rr, fname, user, country, userField, area, areaUnits,
+                              PD, HD, lat, lon, rootUP, cassPD, cassUW, maxInv) {
 
   currency <- ifelse(country == "NG", "NGN", ifelse(country == "RW", "RWF", ifelse(country == "GH", "GHS", "TZS")))
 
-  MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
-                              unit_field = areaUnits, plant_date = PD, hvst_date = HD,
-                              email = email, latitude = lat, longitude = lon,
-                              costcassava = rootUP, unitcassava = cassPD,
-                              maxinvest = maxInv, cassUW = cassUW, product = cassPD, currency = currency)
+  MarkDownTextD <- data.frame(name = user$Name, country = country, phone = user$PhoneNr, 
+		field = userField, field_area = area, unit_field = areaUnits, plant_date = PD, hvst_date = HD,
+        email = user$Email, latitude = lat, longitude = lon, costcassava = rootUP, unitcassava = cassPD,
+        maxinvest = maxInv, cassUW = cassUW, product = cassPD, currency = currency)
 
-  filename <- paste("personalized_info", userPhoneNr, sep = "_")
+  filename <- paste("personalized_info", user$PhoneNr, sep = "_")
   filename <- paste0(filename, ".csv")
   write.csv(MarkDownTextD, filename, row.names = FALSE)
 
@@ -575,32 +572,37 @@ PPSP_MarkdownText <- function(rr, fname, userName = userName, country = country,
 }
 
 
-PP_MarkdownText <- function(userName, country, userPhoneNr, userField, area, areaUnits, PD, HD, email, lat, lon, rootUP, cassPD, cassUW,
-                            maxInv, ploughing, ridging, method_ploughing, method_ridging, userPhoneCC) {
-  MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
-                              unit_field = areaUnits, plant_date = PD, hvst_date = HD,
-                              email = email, latitude = lat, longitude = lon,
-                              costcassava = rootUP, unitcassava = cassPD, cassUW = cassUW,
-                              maxinvest = maxInv, product = cassPD, ploughing = ploughing, ridging = ridging,
-                              method_ploughing = method_ploughing, method_ridging = method_ridging, userPhoneCC = userPhoneCC)
+PP_MarkdownText <- function(user, country, userField, area, areaUnits, PD, HD, lat, lon, rootUP, cassPD, cassUW,
+                            maxInv, ploughing, ridging, method_ploughing, method_ridging) {
+
+  MarkDownTextD <- data.frame(
+		name = user$Name, country = country, phone = user$PhoneNr, field = userField, field_area = area,
+        unit_field = areaUnits, plant_date = PD, hvst_date = HD,
+        email = user$Email, latitude = lat, longitude = lon,
+        costcassava = rootUP, unitcassava = cassPD, cassUW = cassUW,
+        maxinvest = maxInv, product = cassPD, ploughing = ploughing, ridging = ridging,
+        method_ploughing = method_ploughing, method_ridging = method_ridging, userPhoneCC = user$PhoneCC)
 
 
-  write.csv(MarkDownTextD, "PP_MarkDownText.csv", row.names = FALSE)
+	write.csv(MarkDownTextD, "PP_MarkDownText.csv", row.names = FALSE)
 }
 
 
 ### create a data frame from user info which iwll be used within teh markdown file to create the file for the pdf document to be shared via email.
-SP_MarkdownText <- function(userName, country, userPhoneNr, userField, area, areaUnits, PD, HD, email, lat, lon, saleSF, nameSF,
-                            maxInv, ploughing, ridging, method_ploughing, method_ridging, userPhoneCC, CMP, riskAtt,
+SP_MarkdownText <- function(user, country, userField, area, areaUnits, PD, HD, lat, lon, saleSF, nameSF,
+                            maxInv, ploughing, ridging, method_ploughing, method_ridging, CMP, riskAtt,
                             PD_window, HD_window, cassPD, cassUW, cassUP, cassUP_m1, cassUP_m2, cassUP_p1, cassUP_p2) {
-  MarkDownTextD <- data.frame(name = userName, country = country, phone = userPhoneNr, field = userField, field_area = area,
-                              unit_field = areaUnits, plant_date = PD, hvst_date = HD,
-                              email = email, latitude = lat, longitude = lon,
-                              maxinvest = maxInv, saleSF = saleSF, nameSF = nameSF, CMP = CMP, riskAtt = riskAtt, PD, HD,
-                              PD_window = PD_window,
-                              HD_window = HD_window, cassPD = cassPD,
-                              cassUW = cassUW, cassUP = cassUP, cassUP_m1 = cassUP_m1, cassUP_m2 = cassUP_m2,
-                              cassUP_p1 = cassUP_p1, cassUP_p2 = cassUP_p2, userPhoneCC = userPhoneCC)
+
+  MarkDownTextD <- data.frame(name = user$Name, country = country, phone = user$PhoneNr, 
+		field = userField, field_area = area,
+        unit_field = areaUnits, plant_date = PD, hvst_date = HD,
+        email = user$Email, latitude = lat, longitude = lon,
+        maxinvest = maxInv, saleSF = saleSF, nameSF = nameSF, CMP = CMP, riskAtt = riskAtt, PD, HD,
+        PD_window = PD_window,
+        HD_window = HD_window, cassPD = cassPD,
+        cassUW = cassUW, cassUP = cassUP, cassUP_m1 = cassUP_m1, cassUP_m2 = cassUP_m2,
+        cassUP_p1 = cassUP_p1, cassUP_p2 = cassUP_p2, userPhoneCC = user$PhoneCC)
+		
   write.csv(MarkDownTextD, "SP_MarkDownText.csv", row.names = FALSE)
 }
 
@@ -610,14 +612,8 @@ SP_MarkdownText <- function(userName, country, userPhoneNr, userField, area, are
 #             Returns (i) a 1-row dataframe cost-benefit parameters (extra yield, cost and net revenue, and whether to apply
 #             fertilizer and whether to intercrop, and why (not)) , and (ii) a data.frame with types of fertilizer and rates to apply (zeros included).
 #INPUT:       See Cassava Crop Manager function for details
-getCISrecommendations <- function(areaHa = 1,
-                                  FCY = 11,
-                                  tuberUP,
-                                  rootUP,
-                                  fertilizers,
-                                  riskAtt = c(0, 1, 2)) {
-
-  #if (!require("limSolve")) install.packages("limSolve"); library("limSolve")
+getCISrecommendations <- function(areaHa = 1, FCY = 11,
+                                  tuberUP, rootUP, fertilizers, riskAtt = c(0, 1, 2)) {
 
   #calculating expected yield increase from fertilizer
   FSY <- 0.7 * FCY #expected yield of a sweet potato monocrop
@@ -647,29 +643,23 @@ getCISrecommendations <- function(areaHa = 1,
 
     #gross revenue increase: 40% yield increase in cassava + 20% yield increase in sweet potato, but not in fields with yields above 20 t/ha in yield classes 1-3, 20% in cassava and 10% in sweet potato in yield class 4, and 0 in yield class 5
     # dGR <- ifelse(FCY > 30, 0, ifelse(FCY > 20, FCY * 0.6 * 0.2 * rootUP + FSY * 0.8 * 0.1 * tuberUP, FCY * 0.6 * 0.4 * rootUP + FSY * 0.8 * 0.2 * tuberUP))
-    dGR <- ifelse(FCY > 30, 0, ifelse(FCY > 20, FCY * 0.8 * 0.2 * rootUP + FSY * 0.6 * 0.1 * tuberUP, FCY * 0.8 * 0.4 * rootUP + FSY * 0.6 * 0.2 * tuberUP))  #NEW CALCULATION
-
+    dGR <- ifelse(FCY > 30, 0, ifelse(FCY > 20, FCY * 0.8 * 0.2 * rootUP + FSY * 0.6 * 0.1 * tuberUP, 
+				FCY * 0.8 * 0.4 * rootUP + FSY * 0.6 * 0.2 * tuberUP))  #NEW CALCULATION
 
     #evaluating if a solution was found
     if (dTC == 0) {
       dGR <- 0
-
       #trans
-
-
       reason_F <- "Mbolea sahihi haipatikani."
       rec_F <- FALSE
-    }else {
-
-      #trans
+    } else { #trans
       reason_F <- "Tunakushauri usitumie mbolea kwa sababu itakuongezea gharama hatimae utapata hasara."
       rec_F <- TRUE
     }
-  }else {
+  } else {
     dTC <- 0
     FR <- 0
     dGR <- 0
-
     #trans
     reason_F <- "Kilimo mchanganyiko haupendekezwi.Panda muhogo peke yake."
     rec_F <- FALSE
@@ -685,7 +675,6 @@ getCISrecommendations <- function(areaHa = 1,
     #check profitability of fertilizer use
     if (dNR > dNRmin) {
       rec_F <- TRUE
-
       #trans
       reason_F <- "Matumizi ya mbolea inapendekezwa."
     }else {

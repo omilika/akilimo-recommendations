@@ -228,15 +228,10 @@ getPPrecText <- function(ds, country = c("NG", "TZ", "RW")) {
 }
 
 
-process_PP <- function(
-  PP, country,
-  areaHa, costLMO, ploughing, ridging,
-  method_ploughing, method_ridging,
-  FCY, rootUP, riskAtt,
-  userName, userPhoneNr, userPhoneCC,
-  userField, area, areaUnits, PD, HD, email, lat, lon,
-  cassPD, cassUW, maxInv,
-  res, recText_input
+process_PP <- function( PP, country, areaHa, costLMO, ploughing, ridging,
+		method_ploughing, method_ridging, FCY, rootUP, riskAtt, user,
+		userField, area, areaUnits, PD, HD, lat, lon,
+		cassPD, cassUW, maxInv, res, recText_input
 ) {
   recText <- recText_input
   message(paste("Processing PP for", country))
@@ -263,15 +258,13 @@ process_PP <- function(
 
   # Generate markdown output
   PP_MarkdownText(
-    userName = userName,
+    user = user,
     country = country,
-    userPhoneNr = userPhoneNr,
     userField = userField,
     area = area,
     areaUnits = areaUnits,
     PD = PD,
     HD = HD,
-    email = email,
     lat = lat,
     lon = lon,
     rootUP = rootUP,
@@ -282,7 +275,6 @@ process_PP <- function(
     ridging = ridging,
     method_ploughing = method_ploughing,
     method_ridging = method_ridging,
-    userPhoneCC = userPhoneCC
   )
 
   return(list(PPrecom = TRUE, plumberRes = res, recText = recText))

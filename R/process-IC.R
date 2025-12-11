@@ -195,8 +195,8 @@ getICrecText <- function(ds, maizePD) {
 # Process recommendations for Nigeria (NG)
 process_IC_NG <- function(
   IC, country, areaHa, CMP, cobUP, fertilizers, riskAtt,
-  maizePD, userName, userPhoneNr, userField, area,
-  areaUnits, PD, HD, email, lat, lon, userPhoneCC,
+  maizePD, user, userField, area,
+  areaUnits, PD, HD, lat, lon, 
   maizeUW, cassUW, saleSF, nameSF, rootUP, cassPD, maxInv,
   maizeUP, res, recText
 ) {
@@ -220,18 +220,15 @@ process_IC_NG <- function(
     IC_MarkdownText(
       rr = res$IC,
       fertilizers = fertilizers,
-      userName = userName,
+      user = user,
       country = country,
-      userPhoneNr = userPhoneNr,
       userField = userField,
       area = area,
       areaUnits = areaUnits,
       PD = PD,
       HD = HD,
-      email = email,
       lat = lat,
       lon = lon,
-      userPhoneCC = userPhoneCC,
       maizeUW = maizeUW,
       maizePD = maizePD,
       cassUW = cassUW,
@@ -264,8 +261,7 @@ process_IC_NG <- function(
 # Process recommendations for Tanzania (TZ)
 process_IC_TZ <- function(
   IC, country, areaHa, FCY, tuberUP, rootUP, fertilizers, riskAtt,
-  userName, userPhoneNr, userPhoneCC, email,
-  userField, area, areaUnits, PD, HD, lat, lon,
+  user, userField, area, areaUnits, PD, HD, lat, lon,
   sweetPotatoUP, sweetPotatoPD, sweetPotatoUW,
   cassUW, cassPD, maxInv,
   res, recText_input
@@ -291,18 +287,15 @@ process_IC_TZ <- function(
     CIS_MarkdownText(
       rr = res$IC,
       fertilizers = fertilizers,
-      userName = userName,
+      user = user,
       country = country,
-      userPhoneNr = userPhoneNr,
       userField = userField,
       area = area,
       areaUnits = areaUnits,
       PD = PD,
       HD = HD,
-      email = email,
       lat = lat,
       lon = lon,
-      userPhoneCC = userPhoneCC,
       sweetPotatoUP = sweetPotatoUP,
       sweetPotatoPD = sweetPotatoPD,
       sweetPotatoUW = sweetPotatoUW,

@@ -230,55 +230,59 @@ quefts_tools <- function(supply_wly) {
 
 
 QUEFTS_WLY_CY <- function(SoilData, country, wlyd) {
-  #wly_plDate <- wly_data[wly_data$plantingDate == pl_Date, c("lat", "long", "wly_KgHa")]
-  wlyd$long <- wlyd$lon
-  wly_plDate <- wlyd[, c("lat", "long", "water_limited_yield")]
 
-  # colnames(wly_plDate) <- c("lat", "long", "water_limited_yield")
-  Quefts_Input_Data_wly <- merge(SoilData, wly_plDate, by = c("lat", "long"))
+	getsupply <- function(dss) {
+	  data.frame(lat = dss$lat, long = dss$long, 
+				rel_N = dss$rel_N, rel_P = dss$rel_P, rel_K = dss$rel_K, 
+				SN = dss$soilN, SP = dss$soilP, SK = dss$soilK, 
+				water_limited_yield = dss$water_limited_yield,
+				aN = dss$aN, dN = dss$dN, aP = dss$aP, dP = dss$dP, aK = dss$aK, dK = dss$dK, 
+				rN = dss$rN, rP = dss$rP, rK = dss$rK, max_yield = dss$max_yield, tolerance = dss$tolerance,
+				WLY = dss$water_limited_yield)
+	}
+
+
+  #wly_plDate <- wly_data[wly_data$plantingDate == pl_Date, c("lat", "long", "wly_KgHa")]
+	wlyd$long <- wlyd$lon
+	wly_plDate <- wlyd[, c("lat", "long", "water_limited_yield")]
+
+	# colnames(wly_plDate) <- c("lat", "long", "water_limited_yield")
+	Quefts_Input_Data_wly <- merge(SoilData, wly_plDate, by = c("lat", "long"))
 
   ## HI: Median for Nigeria=0.55 and Tanzania=0.52. Q3, Nigeria=0.63 and Tanzania=0.61
-  if (country == "NG" | country == "GH") {
-    crop_param <- cbind(NUE(HI = 0.55), data.frame(rN = 0, rP = 0, rK = 0, max_yield = Quefts_Input_Data_wly$water_limited_yield, tolerance = 0.01))
-  }else {
-    crop_param <- cbind(NUE(HI = 0.55), data.frame(rN = 0, rP = 0, rK = 0, max_yield = Quefts_Input_Data_wly$water_limited_yield, tolerance = 0.01))
-  }
+	if (country == "NG" | country == "GH") {
+		crop_param <- cbind(NUE(HI = 0.55), data.frame(rN = 0, rP = 0, rK = 0, max_yield = Quefts_Input_Data_wly$water_limited_yield, tolerance = 0.01))
+	} else {
+		crop_param <- cbind(NUE(HI = 0.55), data.frame(rN = 0, rP = 0, rK = 0, max_yield = Quefts_Input_Data_wly$water_limited_yield, tolerance = 0.01))
+	}
 
-  ## 1. get soil nutrient supply
-  Queft_Input_Data_Var <- cbind(Quefts_Input_Data_wly, crop_param)
-  supply <- getsupply(Queft_Input_Data_Var) ## to get yield at zero input level
+	  ## 1. get soil nutrient supply
+	Queft_Input_Data_Var <- cbind(Quefts_Input_Data_wly, crop_param)
+	supply <- getsupply(Queft_Input_Data_Var) ## to get yield at zero input level
 
 
-  ## 2. Current yield:
-#  actualUptake <- merge(supply, plyr::ddply(supply, plyr::.(lat, long), actual_uptake_tool), by = c("lat", "long"))
-#  minmax_Yield <- merge(actualUptake, plyr::ddply(actualUptake, plyr::.(lat, long), max_min_yields_tools), by = c("lat", "long"))
-#  Current_Yield <- plyr::ddply(minmax_Yield, plyr::.(lat, long), final_yield_tools) ## yield at zero input
+	  ## 2. Current yield:
+	#  actualUptake <- merge(supply, plyr::ddply(supply, plyr::.(lat, long), actual_uptake_tool), by = c("lat", "long"))
+	#  minmax_Yield <- merge(actualUptake, plyr::ddply(actualUptake, plyr::.(lat, long), max_min_yields_tools), by = c("lat", "long"))
+	#  Current_Yield <- plyr::ddply(minmax_Yield, plyr::.(lat, long), final_yield_tools) ## yield at zero input
 
-## I suspect that merge can be replaced with cbind, as lat/longs are unique 
-## or even better, it seems that supply always has one row
-  actualUptake <- merge(supply, dd_ply(supply, c("lat", "long"), actual_uptake_tool), by = c("lat", "long"))
-  minmax_Yield <- merge(actualUptake, dd_ply(actualUptake, c("lat", "long"), max_min_yields_tools), by = c("lat", "long"))
-  Current_Yield <- dd_ply(minmax_Yield, c("lat", "long"), final_yield_tools) ## yield at zero input
+	## I suspect that merge can be replaced with cbind, as lat/longs are unique 
+	## or even better, it seems that supply always has one row
+	actualUptake <- merge(supply, dd_ply(supply, c("lat", "long"), actual_uptake_tool), by = c("lat", "long"))
+	minmax_Yield <- merge(actualUptake, dd_ply(actualUptake, c("lat", "long"), max_min_yields_tools), by = c("lat", "long"))
+	Current_Yield <- dd_ply(minmax_Yield, c("lat", "long"), final_yield_tools) ## yield at zero input
 
-  colnames(Current_Yield)[3] <- "CurrentYield"
-  Yield_Fertilizer <- merge(wly_plDate, Current_Yield, by = c("lat", "long"))
-  Yield_Fertilizer$CurrentYield <- ifelse(Yield_Fertilizer$CurrentYield > Yield_Fertilizer$water_limited_yield,
-                                          as.character(as.numeric(Yield_Fertilizer$water_limited_yield)), as.numeric(Yield_Fertilizer$CurrentYield))
-  return(Yield_Fertilizer$CurrentYield)
+	colnames(Current_Yield)[3] <- "CurrentYield"
+	Yield_Fertilizer <- merge(wly_plDate, Current_Yield, by = c("lat", "long"))
+
+#	CurrentYield <- ifelse(Yield_Fertilizer$CurrentYield > Yield_Fertilizer$water_limited_yield,
+#							as.character(as.numeric(Yield_Fertilizer$water_limited_yield)), 
+#							as.numeric(Yield_Fertilizer$CurrentYield))
+
+	CurrentYield <- min(Yield_Fertilizer$CurrentYield, Yield_Fertilizer$water_limited_yield)
+	CurrentYield
 }
 
 
 
-#' part of QUEFTS
-#' @param dss
-#' @returnType
-#' @return
-#'
-#' @author Meklit
-#' @export
-getsupply <- function(dss) {
-  supply <- data.frame(lat = dss$lat, long = dss$long, rel_N = dss$rel_N, rel_P = dss$rel_P, rel_K = dss$rel_K, SN = dss$soilN, SP = dss$soilP, SK = dss$soilK, water_limited_yield = dss$water_limited_yield,
-                       aN = dss$aN, dN = dss$dN, aP = dss$aP, dP = dss$dP, aK = dss$aK, dK = dss$dK, rN = dss$rN, rP = dss$rP, rK = dss$rK, max_yield = dss$max_yield, tolerance = dss$tolerance,
-                       WLY = dss$water_limited_yield)
-}
 

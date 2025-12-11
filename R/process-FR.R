@@ -397,7 +397,7 @@ getFRrecommendations <- function(lat, lon, pd, pw, HD, had, maxInv, fertilizers,
 
 
 process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootUP, areaHa, country, FCY, riskAtt,
-                       userName, userPhoneNr, userField, area, areaUnits, PD, email, userPhoneCC,
+                       user, userField, area, areaUnits, PD,
                        cassPD, cassUW, recText, plumberRes, frnotrec_ng, frnotrec_tz, frnotrec_rw) {
 
   no_fr_recommendation_countries <- c("NG", "GH", "TZ", "RW")
@@ -428,11 +428,9 @@ process_FR <- function(FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootU
       write.csv(recText$FR, 'FR_recText.csv', row.names = FALSE)
 
       FR_MarkdownText(
-        rr = plumberRes$FR, fertilizers = fertilizers, userName = userName,
-        country = country, userPhoneNr = userPhoneNr, userField = userField,
-        area = area, areaUnits = areaUnits, PD = PD, HD = HD, email = email,
-        lat = lat, lon = lon, userPhoneCC = userPhoneCC,
-        rootUP = rootUP, cassPD = cassPD, cassUW = cassUW, maxInv = maxInv
+        rr = plumberRes$FR, fertilizers = fertilizers, user = user,
+        country = country, userField = userField, area = area, areaUnits = areaUnits, PD = PD, HD = HD, 
+        lat = lat, lon = lon, rootUP = rootUP, cassPD = cassPD, cassUW = cassUW, maxInv = maxInv
       )
 
       fertilizerAdviseTable(FR = TRUE, IC = FALSE, country = country, areaUnits = areaUnits)

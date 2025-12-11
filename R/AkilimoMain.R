@@ -44,6 +44,18 @@ get_cassUPW <- function(cassUP, cassUW, cassPD, country) {
 	c(cassUP, cassUW )
 }
 
+get_user <- function(body) {
+	list(
+		send_SMS = process_json_value("SMS", body, default_value = FALSE),
+		send_email = process_json_value("email", body, default_value = FALSE),
+		PhoneCC = process_json_value("userPhoneCC", body),
+		PhoneNr = process_json_value("userPhoneNr", body),
+		Name = process_json_value("userName", body),
+		Email = process_json_value("userEmail", body)
+	)
+}
+
+
 run_akilimo <- function(json) {
 
     # Parse JSON body
@@ -58,7 +70,8 @@ run_akilimo <- function(json) {
     areaUnits <- process_json_value("areaUnits", body)
 
     IC <- process_json_value("IC", body, default_value = FALSE)
-    intercrop <- process_json_value("intercrop", body, default_value = FALSE)
+    # not used?
+	#intercrop <- process_json_value("intercrop", body, default_value = FALSE)
     FR <- process_json_value("FR", body, default_value = FALSE)
     PP <- process_json_value("PP", body, default_value = FALSE)
     SPP <- process_json_value("SPP", body, default_value = FALSE)
@@ -82,15 +95,11 @@ run_akilimo <- function(json) {
     cassUP_p2 <- process_json_value("cassUP_p2", body)
     maxInv <- process_json_value("maxInv", body, default_value = NA)
 
-    SMS <- process_json_value("SMS", body, default_value = FALSE)
-    email <- process_json_value("email", body, default_value = FALSE)
-    request_token <- process_json_value("request_token", body)
-    userPhoneCC <- process_json_value("userPhoneCC", body)
-    userPhoneNr <- process_json_value("userPhoneNr", body)
-    userName <- process_json_value("userName", body)
-    userEmail <- process_json_value("userEmail", body)
-    userField <- process_json_value("userField", body)
-    riskAtt <- process_json_value("riskAtt", body, default_value = 0)
+    user <- get_user(body)
+    
+	userField <- process_json_value("userField", body)
+    
+	riskAtt <- process_json_value("riskAtt", body, default_value = 0)
 
     if (country == "BI") {
 		country <- "BU" #use non standard country code for Burundi
@@ -210,7 +219,7 @@ run_akilimo <- function(json) {
 
 		resFr <- process_FR(
 			FR, lat, lon, pd, pw, HD, had, maxInv, fertilizers, rootUP, areaHa, country, FCY, riskAtt,
-			userName, userPhoneNr, userField, area, areaUnits, PD, email, userPhoneCC,
+			user, userField, area, areaUnits, PD, 
 			cassPD, cassUW, recText, plumberRes, frnotrec_ng, frnotrec_tz, frnotrec_rw
 		)
 
@@ -219,10 +228,6 @@ run_akilimo <- function(json) {
 		plumberRes <- resFr$plumberRes
 		selected_key <- 'FR'
     }
-
-
-
-
 
     if (IC) {
 	
@@ -281,9 +286,9 @@ run_akilimo <- function(json) {
       if (country == "NG") {
         resIC <- process_IC_NG(
           IC = IC, country = country, areaHa = areaHa, CMP = CMP, cobUP = cobUP, fertilizers = fertilizers,
-          riskAtt = riskAtt, maizePD = maizePD, userName = userName, userPhoneNr = userPhoneNr, userField = userField,
-          area = area, areaUnits = areaUnits, PD = PD, HD = HD, email = email, lat = lat, lon = lon,
-          userPhoneCC = userPhoneCC, maizeUW = maizeUW, cassUW = cassUW, saleSF = saleSF, nameSF = nameSF,
+          riskAtt = riskAtt, maizePD = maizePD, user = user, userField = userField,
+          area = area, areaUnits = areaUnits, PD = PD, HD = HD, lat = lat, lon = lon,
+		  maizeUW = maizeUW, cassUW = cassUW, saleSF = saleSF, nameSF = nameSF,
           rootUP = rootUP, cassPD = cassPD, maxInv = maxInv, maizeUP = maizeUP, res = plumberRes, recText = recText
         )
       }
@@ -291,8 +296,8 @@ run_akilimo <- function(json) {
       if (country == "TZ") {
         resIC <- process_IC_TZ(
           IC = IC, country = country, areaHa = areaHa, FCY = FCY, tuberUP = tuberUP, rootUP = rootUP,
-          fertilizers = fertilizers, riskAtt = riskAtt, userName = userName, userPhoneNr = userPhoneNr,
-          userPhoneCC = userPhoneCC, email = email, userField = userField, area = area, areaUnits = areaUnits,
+          fertilizers = fertilizers, riskAtt = riskAtt, user = user, 
+		  userField = userField, area = area, areaUnits = areaUnits,
           PD = PD, HD = HD, lat = lat, lon = lon, sweetPotatoUP = sweetPotatoUP, sweetPotatoPD = sweetPotatoPD,
           sweetPotatoUW = sweetPotatoUW, cassUW = cassUW, cassPD = cassPD, maxInv = maxInv,
           res = plumberRes, recText_input = recText
@@ -306,7 +311,6 @@ run_akilimo <- function(json) {
     }
 
     if (PP) {
-
 
 		tractor_plough <- process_json_value("tractor_plough", body, default_value = FALSE)
 		tractor_harrow <- process_json_value("tractor_harrow", body, default_value = FALSE)
@@ -338,55 +342,74 @@ run_akilimo <- function(json) {
 		if (cost_weeding2 == 0) cost_weeding2 <- NA
 		if (fallowHeight == 0) fallowHeight <- NA
 
-
-	
 		# create dataframe with cost of land management operations
 		costLMO <- data.frame(operation = c(rep(c("ploughing", "harrowing", "ridging"), 2), "weeding1", "weeding2"),
 							  method = c(rep("manual", 3), rep("tractor", 3), NA, NA),
-							  cost = c(cost_manual_ploughing, cost_manual_harrowing, cost_manual_ridging, cost_tractor_ploughing, cost_tractor_harrowing, cost_tractor_ridging, cost_weeding1, cost_weeding2),
-							  area = area_basis)
+							  cost = c(cost_manual_ploughing, cost_manual_harrowing, cost_manual_ridging, cost_tractor_ploughing, cost_tractor_harrowing, cost_tractor_ridging, cost_weeding1, cost_weeding2), area = area_basis)
 
 		costLMO_MD <- costLMO
 		costLMO$costHa <- costLMO$cost / costLMO$area
 		costLMO <- subset(costLMO, select = -c(area, cost))
 
-
 		# add default values for LMO operations if missing
 		if (country == "NG") {
-		  if (is.na(cost_manual_ploughing))                   costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 17000 * 2.47105
-		  if (is.na(cost_manual_harrowing))                   costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 15000 * 2.47105
-		  if (is.na(cost_manual_ridging))                     costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 12000 * 2.47105
-		  if (is.na(cost_tractor_ploughing) & tractor_plough) costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
-		  if (is.na(cost_tractor_harrowing) & tractor_harrow) costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
-		  if (is.na(cost_tractor_ridging) & tractor_ridger) costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
-		  if (is.na(cost_weeding1))                           costLMO[costLMO$operation == "weeding1",]$costHa <- 30000 * 2.47105
-		  if (is.na(cost_weeding2))                           costLMO[costLMO$operation == "weeding2",]$costHa <- 30000 * 2.47105
-
+		  if (is.na(cost_manual_ploughing)) {
+			costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 17000 * 2.47105
+		  }
+		  if (is.na(cost_manual_harrowing)) {
+			costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 15000 * 2.47105
+		  }  
+		  if (is.na(cost_manual_ridging)) {
+			costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 12000 * 2.47105
+		  }
+		  if (is.na(cost_tractor_ploughing) & tractor_plough) {
+			costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
+		  }
+		  if (is.na(cost_tractor_harrowing) & tractor_harrow) {
+			costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
+		  } 
+		  if (is.na(cost_tractor_ridging) & tractor_ridger) {
+			costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 6000 * 2.47105
+		  }
+		  if (is.na(cost_weeding1)) {
+			costLMO[costLMO$operation == "weeding1",]$costHa <- 30000 * 2.47105
+		  }
+		  if (is.na(cost_weeding2)) {
+			costLMO[costLMO$operation == "weeding2",]$costHa <- 30000 * 2.47105
+		  }
 		}else if (country == "TZ") {
-		  if (is.na(cost_manual_ploughing))                   costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 175000 * 2.47105
-		  if (is.na(cost_manual_harrowing))                   costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 150000 * 2.47105
-		  if (is.na(cost_manual_ridging))                     costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 225000 * 2.47105
-		  if (is.na(cost_tractor_ploughing) & tractor_plough) costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 150000 * 2.47105
-		  if (is.na(cost_tractor_harrowing) & tractor_harrow) costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 100000 * 2.47105
-		  if (is.na(cost_tractor_ridging) & tractor_ridger) costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 115000 * 2.47105
-		  if (is.na(cost_weeding1))                           costLMO[costLMO$operation == "weeding1",]$costHa <- 60000 * 2.47105
-		  if (is.na(cost_weeding2))                           costLMO[costLMO$operation == "weeding2",]$costHa <- 45000 * 2.47105
-
-
+		  if (is.na(cost_manual_ploughing)) {
+			costLMO[costLMO$operation == "ploughing" & costLMO$method == "manual",]$costHa <- 175000 * 2.47105
+		  }
+		  if (is.na(cost_manual_harrowing)) {
+			costLMO[costLMO$operation == "harrowing" & costLMO$method == "manual",]$costHa <- 150000 * 2.47105
+		  }
+		  if (is.na(cost_manual_ridging)) {
+			costLMO[costLMO$operation == "ridging" & costLMO$method == "manual",]$costHa <- 225000 * 2.47105
+		  }
+		  if (is.na(cost_tractor_ploughing) & tractor_plough) {
+			costLMO[costLMO$operation == "ploughing" & costLMO$method == "tractor",]$costHa <- 150000 * 2.47105
+		  }
+		  if (is.na(cost_tractor_harrowing) & tractor_harrow) {
+			costLMO[costLMO$operation == "harrowing" & costLMO$method == "tractor",]$costHa <- 100000 * 2.47105
+		  }
+		  if (is.na(cost_tractor_ridging) & tractor_ridger) {
+			costLMO[costLMO$operation == "ridging" & costLMO$method == "tractor",]$costHa <- 115000 * 2.47105
+		  }
+		  if (is.na(cost_weeding1)) {
+			costLMO[costLMO$operation == "weeding1",]$costHa <- 60000 * 2.47105
+		  }
+		  if (is.na(cost_weeding2)) {
+			costLMO[costLMO$operation == "weeding2",]$costHa <- 45000 * 2.47105
+		  }
 		}
 
-
-		if (!is.na(cost_manual_ploughing) |
-		  !is.na(cost_manual_harrowing) |
-		  !is.na(cost_manual_ridging) |
-		  !is.na(cost_tractor_ploughing) |
-		  !is.na(cost_tractor_harrowing) |
-		  !is.na(cost_tractor_ridging) |
-		  !is.na(cost_weeding1) |
-		  !is.na(cost_weeding2)) {
+		if (any(!is.na(c(cost_manual_ploughing, cost_manual_harrowing, cost_manual_ridging,
+				cost_tractor_ploughing, cost_tractor_harrowing, cost_tractor_ridging,
+				cost_weeding1, cost_weeding2)))) {
 		  costLMO_MD$area <- paste(costLMO_MD$area, areaUnits, sep = "")
 		  write.csv(costLMO_MD, "costLMO.csv", row.names = FALSE)
-		}else {
+		} else {
 		  costLMO_MD <- costLMO
 		  names(costLMO_MD) <- c("operation", "method", "cost")
 		  costLMO_MD$area <- "1ha"
@@ -395,19 +418,13 @@ run_akilimo <- function(json) {
 
 		}
 	
-	
-	
-	
-	
       resPP <- process_PP(
-        PP = PP, country = country,
-        areaHa = areaHa, costLMO = costLMO,
+        PP = PP, country = country, areaHa = areaHa, costLMO = costLMO,
         ploughing = ploughing, ridging = ridging,
         method_ploughing = method_ploughing, method_ridging = method_ridging,
         FCY = FCY, rootUP = rootUP, riskAtt = riskAtt,
-        userName = userName, userPhoneNr = userPhoneNr, userPhoneCC = userPhoneCC,
-        userField = userField, area = area, areaUnits = areaUnits,
-        PD = PD, HD = HD, email = email, lat = lat, lon = lon,
+        user = user, userField = userField, area = area, areaUnits = areaUnits,
+        PD = PD, HD = HD, lat = lat, lon = lon,
         cassPD = cassPD, cassUW = cassUW, maxInv = maxInv,
         res = plumberRes, recText = recText
       )
@@ -425,14 +442,12 @@ run_akilimo <- function(json) {
         saleSF = saleSF, nameSF = nameSF, FCY = FCY,
         rootUP = rootUP, rootUP_m1 = rootUP_m1, rootUP_m2 = rootUP_m2,
         rootUP_p1 = rootUP_p1, rootUP_p2 = rootUP_p2,
-        userName = userName, userPhoneNr = userPhoneNr, userField = userField,
-        area = area, areaUnits = areaUnits, email = email, maxInv = maxInv,
+        user = user, userField = userField,
+        area = area, areaUnits = areaUnits, maxInv = maxInv,
         ploughing = ploughing, ridging = ridging, method_ploughing = method_ploughing,
-        method_ridging = method_ridging, userPhoneCC = userPhoneCC,
-        CMP = CMP, riskAtt = riskAtt,
+        method_ridging = method_ridging,  CMP = CMP, riskAtt = riskAtt,
         cassPD = cassPD, cassUW = cassUW, cassUP = cassUP,
-        cassUP_m1 = cassUP_m1, cassUP_m2 = cassUP_m2,
-        cassUP_p1 = cassUP_p1, cassUP_p2 = cassUP_p2,
+        cassUP_m1 = cassUP_m1, cassUP_m2 = cassUP_m2, cassUP_p1 = cassUP_p1, cassUP_p2 = cassUP_p2,
         res = plumberRes, recText = recText
       )
 
@@ -455,6 +470,8 @@ run_akilimo <- function(json) {
       recText = recText
     )
 
+
+    request_token <- process_json_value("request_token", body)
 
     if (is.null(selected_key)) {
       res$status <- 404

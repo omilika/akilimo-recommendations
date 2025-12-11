@@ -34,8 +34,8 @@ sendSMSReport <- function(SMStext, dst) {
 #' function to send mail
 
 # this is not working. Perhaps replace mailR with sendmailR or blastula package to avoid Java dependency
-
-sendEmailReport <- function(userEmail, FR, IC, PP, SP, FRrecom, ICrecom, country, PPrecom, SPrecom, userPhoneNr) {
+# never reached??
+sendEmailReport <- function(user, FR, IC, PP, SP, FRrecom, ICrecom, country, PPrecom, SPrecom) {
 
 	message(paste("Running email generation FR=", FR, "IC=", IC, "PP=", PP, "SP=", SP, "FRrecom=", FRrecom, "ICrecom=", ICrecom))
 
@@ -44,43 +44,43 @@ sendEmailReport <- function(userEmail, FR, IC, PP, SP, FRrecom, ICrecom, country
 
 	if (FR & (!IC) & FRrecom) {
 	# is that the correct file exists? Or is that the file that should be generated?
-		if (country %in% c("NG", "GH") & file.exists(paste0("fertilizer_advice_", userPhoneNr, ".pdf"))) {
-			fname <- add_pdf(paste0('fertilizer_advice_', userPhoneNr, ".pdf"))
+		if (country %in% c("NG", "GH") & file.exists(paste0("fertilizer_advice_", user$PhoneNr, ".pdf"))) {
+			fname <- add_pdf(paste0('fertilizer_advice_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('FR_markdown_VFT.Rmd', file=fname, delay = 3)
 		} else if (country == "TZ") {
 			#if (file.exists("fertilizer_advice_swa.pdf"))
-			fname <- add_pdf(paste0('fertilizer_advice_swa_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('fertilizer_advice_swa_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('FR_markdown_swa.Rmd', file = fname, delay = 3)
 		}
 	}
 
 	if (FR & IC & ICrecom) {
 		if (country == "NG" & file.exists("intercrop_advice_VFT.pdf")) {
-			fname <- add_pdf(paste0('intercrop_advice_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('intercrop_advice_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('IC_markdown_VFT.Rmd', file = fname, delay = 3)
 		} else if (country == "TZ" & file.exists("CIS_VFT.pdf")) {
-			fname <- add_pdf(paste0('CIS_advice_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('CIS_advice_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('CIS_markdown_swa.Rmd', file = fname, delay = 3)
 		}
 	}
 	
 	if (PP & PPrecom) {
 		if (country == "NG" & file.exists("PP_advice_VFT.pdf")) {
-			fname <- add_pdf(paste0('PP_advice_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('PP_advice_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('PP_markdownVFT.Rmd', file = fname, delay = 3)
 		} else if (country == "TZ" & file.exists("PP_advice_swa.pdf")) {
-			fname <- add_pdf(paste0('PP_advice_swa_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('PP_advice_swa_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('PP_markdown_swa.Rmd', file = fname, delay = 3)
 		} 
 	}
 
 	if (SP & SPrecom) {
 		if (country %in% c("NG", "GH") & file.exists("SP_advice_VFT.pdf")) {
-			fname <- add_pdf(paste0('SP_advice_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('SP_advice_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('SP_markdownVFT.Rmd', file = fname, delay = 3)
 			if (file.exists("spgg.png")) file.remove("spgg.png")
 		} else if (country == "TZ" & file.exists("SP_advice_swa.pdf")) {
-			fname <- add_pdf(paste0('SP_advice_swa_', userPhoneNr, ".pdf"))
+			fname <- add_pdf(paste0('SP_advice_swa_', user$PhoneNr, ".pdf"))
 			webshot::rmdshot('SP_markdown_swa.Rmd', file = fname, delay = 3)
 			if (file.exists("spgg.png")) file.remove("spgg.png")
 		}
@@ -89,7 +89,7 @@ sendEmailReport <- function(userEmail, FR, IC, PP, SP, FRrecom, ICrecom, country
 	if (!is.null(listofPDFs)) {
 		pwd <- readRDS("passwords.rds")
 		mailR::send.mail(from = pwd$email$user.name,
-              to = as.character(userEmail),
+              to = as.character(user$Email),
               subject = "AKILIMO recommendation",
               body = "Please find attached the recommendation. \n Best Regards, \n AKILIMO",
               authenticate = TRUE,
